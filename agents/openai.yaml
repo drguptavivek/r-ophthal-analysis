@@ -1,0 +1,4 @@
+interface:
+  display_name: "R-Ophthal Analysis"
+  short_description: "Ophthalmology analysis with internal components"
+  default_prompt: "Use $r-ophthal-analysis to run this ophthalmology clinical analysis step by step in R Markdown."

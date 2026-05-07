@@ -1,0 +1,30 @@
+# macOS and editor noise
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# R local session artifacts
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# Accidental analysis outputs if the scaffold script is run in the skill repo
+data/
+figs/
+results/
+lit-review/
+R/
