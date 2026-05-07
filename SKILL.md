@@ -19,6 +19,7 @@ This is one skill with internal components. Load only the component reference ne
 - Data management: `references/component-data-management.md`, then `references/clinical-variable-coding.md` if recoding/exporting.
 - R Markdown/reporting: `references/component-rmd-reporting.md`, then `references/clinical-reporting-guidelines.md` before any table/figure/result.
 - Ophthalmology definitions: `references/component-ophthalmology.md`, then `references/clinical-ophthalmology-guidelines.md` when defining eye/person outcomes.
+- WHO ECIM indicators: `references/component-who-ecim-indicators.md`, then `references/who-ecim-indicator-formulas.md` for WHO ECIM eCSC/eREC indicators and their CSC/REC companion formulas.
 - Study designs and modelling: `references/component-study-designs.md`, then the relevant design reference only.
 
 For portability, keep this whole folder as the repo. The only bundled script is optional project scaffolding: `scripts/scaffold_analysis_guidelines.R`, resolved relative to this skill root.
@@ -56,6 +57,19 @@ At each step, render the `.Rmd` to HTML and review:
 - Do they make clinical and statistical sense?
 - Are Ns and denominators consistent?
 - What does this imply for the next step?
+
+## User Workflow Translation Patterns
+
+When modernizing or extending the user's older Stata ophthalmology projects, preserve the working-analysis style unless the user asks for a clean-room redesign:
+
+- Treat numbered scripts as an execution map. Convert `00`, `01`, `05.2`, `10.2b`, etc. into ordered `.Rmd` sections or explicitly named helper functions.
+- Preserve visible checkpoints. Replace repeated Stata `.dta` saves with deliberate cleaned and frozen datasets in `data/`, plus compact intermediate tables in `results/` when they are used for audit or manuscript review.
+- Keep path setup portable. Do not copy hardcoded `cap cd` fallback blocks into R; use project-root detection and relative paths, but document any source path assumption in the setup section.
+- Keep helper logic local and readable. Translate repeated Stata `program define` helpers into `R/` functions, source them from the central `.Rmd`, and keep function names close to the original analytic intent.
+- Preserve survey design decisions. For RAAB-like work, explicitly map Stata `svyset`, FPC, cluster, district, age-sex standardization, DEFF, and weight variables into `survey` design objects before estimating results.
+- Preserve table/figure auditability. Replace `log using`, `htput`, `htsummary`, `export excel`, and `graph export` with rendered `.Rmd` tables, saved workbook/table outputs, and figures in `figs/`, keeping denominators and footnotes adjacent to each result.
+- Respect versioned trial/final variants. When multiple old scripts exist, identify the likely source-of-truth script with the user before consolidating, especially files named `NEW`, `final`, `trial`, `conflicted copy`, reviewer comments, or dated variants.
+- Keep external Stata package assumptions visible when translating legacy code, for example `esttab`, `estout`, `metan`, or custom project helpers.
 
 ## Non-Negotiables
 
