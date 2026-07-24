@@ -6,9 +6,9 @@ An Agent Skill for stepwise ophthalmology clinical research analysis in R and R 
 
 ## What it does
 
-- Sets up a portable R/R Markdown analysis project.
+- Sets up a portable R/R Markdown analysis project with a central `analysis.Rmd`.
 - Audits records, variable types, duplicates, and missingness before recoding.
-- Separates raw, cleaned, and frozen analytic datasets.
+- Separates raw, derived, frozen, and exported datasets while excluding the complete `data/` directory from Git.
 - Handles eye-wise and person-wise ophthalmology definitions explicitly.
 - Routes work to design-specific guidance for surveys, diagnostic accuracy, prediction, longitudinal data, survival analysis, trials, and meta-analysis.
 - Includes guarded WHO ECIM eCSC/eREC and companion-indicator guidance.
@@ -87,6 +87,14 @@ On macOS, choose **Finder → Go → Go to Folder…** and enter the path up to 
 
 The skill must ask before installing R packages or changing MCP configuration. If the optional MCP path is unavailable, it should continue with `Rscript` and the same central `.Rmd` workflow.
 
+Check readiness without installing anything:
+
+```bash
+Rscript scripts/selftest.R
+```
+
+The self-test uses base R. It verifies the core skill and scaffold, then reports report-rendering and RStudio MCP dependencies as optional readiness information.
+
 ## Use
 
 Invoke the installed skill explicitly when desired:
@@ -103,17 +111,32 @@ Run the scaffold from the target analysis project, not from the skill repository
 Rscript /path/to/r-ophthal-analysis/scripts/scaffold_analysis_guidelines.R /path/to/analysis-project
 ```
 
-It creates `data/`, `R/`, `figs/`, `results/`, and `lit-review/`, plus a reusable `R/analysis_guidelines.R` helper file. Re-running it does not overwrite an existing helper file.
+It creates:
+
+- `analysis.Rmd`, containing the analysis charter, approval gates, data audit, missing-data plan, freeze record, results sections, and `sessionInfo()`.
+- `data/raw/`, `data/derived/`, `data/frozen/`, and `data/exports/`.
+- `R/analysis_guidelines.R`, `figs/`, `results/`, and `lit-review/`.
+- A project `.gitignore` entry for `/data/`, so every patient-level data folder remains outside Git.
+
+Re-running the scaffold preserves existing project files and only adds a missing `/data/` ignore rule.
 
 ## Validate
 
 From the repository root:
 
 ```bash
+Rscript tests/run_tests.R
+Rscript scripts/selftest.R
 npx skills add . --list
 ```
 
-The scaffold uses base R only and can be smoke-tested in a disposable directory. Maintainers should also validate `SKILL.md` with their agent platform's skill-authoring validator before release.
+The scaffold, tests, and self-test use base R only. Continuous integration runs these checks plus skill discovery. Maintainers should also validate `SKILL.md` with their agent platform's skill-authoring validator before release.
+
+Update an installed copy through the skills CLI:
+
+```bash
+npx skills update r-ophthal-analysis
+```
 
 ## Source and marketplace
 

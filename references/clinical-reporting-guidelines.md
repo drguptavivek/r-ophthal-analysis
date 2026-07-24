@@ -10,7 +10,8 @@ Use these guidelines for manuscript tables, figures, and statistical reporting.
 - Show main analysis code by default so the analysis remains auditable.
 - Use `echo=FALSE` for chunks that only produce table footnotes, figure legends, captions, styling, inline interpretation text, or formatting glue.
 - Keep result, footnote/legend, and immediate interpretation adjacent in the rendered HTML without unrelated printed code between them.
-- Use chunk labels and explicit chunk options. Prefer a setup chunk that sets defaults deliberately, for example `knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)`, then override specific helper/output chunks with `echo=FALSE`.
+- Use chunk labels and explicit chunk options. Prefer a setup chunk that sets defaults deliberately, for example `knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = TRUE)`, then override specific helper/output chunks with `echo=FALSE`.
+- Keep warnings visible until reviewed. Silence only a known, documented warning in the specific chunk that produces it.
 - Prefer compact scientific publication style tables.
 - Every table must have a clear heading and a footnote.
 - Table footnotes must define abbreviations, units, statistical tests, denominators, and missing-data handling when relevant.
@@ -18,8 +19,8 @@ Use these guidelines for manuscript tables, figures, and statistical reporting.
 - Save figures to readable filenames when the user asks where figures live.
 - Save figures in `figs/` unless the project has a pre-existing figure directory.
 - Save rendered outputs, manuscript tables, and model summaries in `results/` unless the project has a pre-existing results directory.
-- Avoid row-level identifiers in reports unless necessary and explicitly requested.
-- Preserve patient privacy in summaries.
+- Keep patient-level data local and do not upload or share it without explicit approval. Do not place row-level identifiers in reports or figures.
+- Set and record seeds for stochastic analysis and include relevant package versions plus `sessionInfo()` in the reproducibility record.
 
 ## Numeric Formatting
 

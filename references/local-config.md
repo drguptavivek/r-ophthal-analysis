@@ -43,7 +43,7 @@ claudeAddin()
 
 For this skill's Codex default, do not use the printed `codex mcp add` command unless the user wants global setup. Instead, write the project-local `.codex/config.toml` block described in `component-mcp.md`.
 
-Use `install_cli(tools = "claude")` for Claude Code CLI and `install_cli(tools = "gemini")` for Gemini. Use `install_clauder()` for Claude Desktop and `install_clauder(for_cursor = TRUE)` for Cursor. Qwen Code support depends on the installed ClaudeR version; if `install_cli(tools = "qwen")` fails, report the exact error and suggest updating ClaudeR.
+ClaudeR-supported client names and installation commands can change. Check the current ClaudeR README and the installed `install_cli()` arguments before configuring Claude Code, Codex, Qwen, Gemini, Antigravity, Desktop, or Cursor. Report unsupported tool names rather than guessing a replacement command.
 
 The `clauder-mcp` Python bridge is separate from the ClaudeR R package. ClaudeR runs the RStudio-side HTTP server; `uvx clauder-mcp` is the MCP bridge that AI clients connect to.
 
