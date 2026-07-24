@@ -24,6 +24,14 @@ This is one skill with internal components. Load only the component reference ne
 
 For portability, keep this whole folder as the repo. Use `scripts/scaffold_analysis_guidelines.R` for optional project scaffolding and `scripts/selftest.R` for a dependency-free readiness check, resolving both relative to this skill root.
 
+## Runtime Preflight
+
+Before the first R execution or environment-setup action in a task, run `Rscript scripts/selftest.R`. It reports the active R version, `Rscript` and library paths, package build locations, Pandoc, and optional RStudio MCP readiness without installing anything.
+
+- When R has been upgraded, moved, or starts loading a different library, run `Rscript scripts/selftest.R --check-updates`. Review the result with the user; never update R or packages automatically. After a major/minor R change, recheck required packages and rerun ClaudeR client configuration only with approval because R library paths may change.
+- For an agent that will invoke Pandoc from Python, pass that exact interpreter to the self-test: `Rscript scripts/selftest.R --python /absolute/path/to/python`. The check uses `scripts/check_pandoc.py`, which requires only the Python standard library. Use the reported absolute Pandoc executable rather than assuming it is on the Python sandbox's `PATH`.
+- R Markdown rendering requires `rmarkdown`, `knitr`, and an executable Pandoc. The self-test also discovers Pandoc bundled with RStudio through `rmarkdown::find_pandoc()`.
+
 ## Core Workflow
 
 Before substantive analysis, clarify and record in the central `.Rmd`:

@@ -9,6 +9,7 @@ Use this component for RStudio/ClaudeR MCP setup, status, start, stop, `uvx`, Pa
 - If MCP is unavailable, continue reproducible work with direct `Rscript` and the same central `.Rmd`.
 - Ask the target agent before installing/configuring: `codex`, `claude`, `gemini`, `qwen`, `desktop`, or `cursor`.
 - For Codex, default to project-local `.codex/config.toml`; do not use global `codex mcp add` unless the user asks.
+- After a major/minor R update or a changed R library path, run the skill self-test and verify ClaudeR from the active R installation. Re-run client configuration only after user approval.
 
 ## Setup Notes
 

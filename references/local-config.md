@@ -47,4 +47,6 @@ ClaudeR-supported client names and installation commands can change. Check the c
 
 The `clauder-mcp` Python bridge is separate from the ClaudeR R package. ClaudeR runs the RStudio-side HTTP server; `uvx clauder-mcp` is the MCP bridge that AI clients connect to.
 
+R upgrades can change `R.home()`, the `Rscript` executable, and `.libPaths()`. Run `Rscript scripts/selftest.R --check-updates` after an upgrade. If ClaudeR or required rendering packages are absent from the new library, discuss and reinstall only the needed packages, then rerun the approved client configuration. Do not reuse an absolute path from an older R library without verification.
+
 `uvx` must be available on `PATH`. Check with `command -v uvx` and `uvx --version` on macOS/Linux, or `where uvx` and `uvx --version` on Windows. If missing, install `uv` with `brew install uv`, `curl -LsSf https://astral.sh/uv/install.sh | sh`, PowerShell `irm https://astral.sh/uv/install.ps1 | iex`, or `winget install --id=astral-sh.uv -e`, then restart the terminal/RStudio session.

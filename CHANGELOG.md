@@ -15,4 +15,5 @@ All notable changes to this skill are documented here.
 - Git-ignored raw, derived, frozen, and export data directories.
 - Validated publication-formatting helpers and base-R regression tests.
 - Dependency-free readiness self-test and continuous validation workflow.
+- Non-installing R/CRAN package update checks, R path diagnostics, RStudio-bundled Pandoc discovery, and an isolated Python-to-Pandoc access probe.
 - Agent-facing metadata, installation instructions, and MIT licensing.

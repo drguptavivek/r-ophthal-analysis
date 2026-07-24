@@ -1,9 +1,21 @@
 #!/usr/bin/env Rscript
 
+args <- commandArgs(trailingOnly = TRUE)
 script_arg <- grep("^--file=", commandArgs(trailingOnly = FALSE), value = TRUE)
 script_path <- normalizePath(sub("^--file=", "", script_arg[[1]]), mustWork = TRUE)
 repo_root <- normalizePath(file.path(dirname(script_path), ".."), mustWork = TRUE)
+check_updates <- "--check-updates" %in% args
 
+option_value <- function(name) {
+  location <- match(name, args)
+  if (is.na(location)) return(NULL)
+  if (location == length(args) || startsWith(args[[location + 1L]], "--")) {
+    stop(name, " requires a value", call. = FALSE)
+  }
+  args[[location + 1L]]
+}
+
+python_path <- option_value("--python")
 checks <- list()
 
 add_check <- function(name, status, detail, required = FALSE) {
@@ -52,10 +64,131 @@ run_scaffold_smoke_test <- function() {
   invisible(TRUE)
 }
 
+find_pandoc <- function() {
+  candidates <- character()
+  on_path <- unname(Sys.which("pandoc"))
+  if (nzchar(on_path)) candidates <- c(candidates, on_path)
+
+  rstudio_dir <- Sys.getenv("RSTUDIO_PANDOC", unset = "")
+  if (nzchar(rstudio_dir)) {
+    candidates <- c(candidates, file.path(rstudio_dir, "pandoc"))
+  }
+
+  if (requireNamespace("rmarkdown", quietly = TRUE)) {
+    found <- tryCatch(rmarkdown::find_pandoc(cache = FALSE), error = function(...) NULL)
+    if (!is.null(found) && nzchar(found$dir)) {
+      candidates <- c(candidates, file.path(found$dir, "pandoc"))
+    }
+  }
+
+  candidates <- unique(candidates[file.exists(candidates)])
+  for (candidate in candidates) {
+    output <- tryCatch(
+      system2(candidate, "--version", stdout = TRUE, stderr = TRUE),
+      error = function(...) character()
+    )
+    status <- attr(output, "status")
+    if (length(output) > 0L && (is.null(status) || status == 0L)) {
+      return(normalizePath(candidate, mustWork = TRUE))
+    }
+  }
+  ""
+}
+
+package_detail <- function(package) {
+  description <- utils::packageDescription(package)
+  built <- description$Built
+  built_r <- if (is.null(built)) "unknown" else sub(";.*$", "", built)
+  paste0(
+    as.character(utils::packageVersion(package)),
+    "; ", built_r,
+    "; ", normalizePath(find.package(package), mustWork = TRUE)
+  )
+}
+
+package_built_for_current_r <- function(package) {
+  built <- utils::packageDescription(package)$Built
+  if (is.null(built)) return(NA)
+  built_version <- sub("^R[ ]+", "", sub(";.*$", "", built))
+  built_parts <- strsplit(built_version, "[.]", fixed = FALSE)[[1]]
+  current_parts <- strsplit(as.character(getRversion()), "[.]", fixed = FALSE)[[1]]
+  if (length(built_parts) < 2L || length(current_parts) < 2L) return(NA)
+  identical(built_parts[1:2], current_parts[1:2])
+}
+
+check_cran_updates <- function() {
+  cran_repo <- getOption("repos")[["CRAN"]]
+  if (is.null(cran_repo) || identical(cran_repo, "@CRAN@")) {
+    cran_repo <- "https://cloud.r-project.org"
+  }
+
+  latest_r <- tryCatch(
+    {
+      base_url <- "https://cran.r-project.org/src/base/"
+      base_index <- readLines(base_url, warn = FALSE)
+      directory_matches <- regmatches(
+        base_index,
+        gregexpr("R-[0-9]+/", base_index, perl = TRUE)
+      )
+      directories <- unique(unlist(directory_matches, use.names = FALSE))
+      directories <- directories[nzchar(directories)]
+      versions <- character()
+      for (directory in directories) {
+        index <- readLines(paste0(base_url, directory), warn = FALSE)
+        archive_matches <- regmatches(
+          index,
+          gregexpr("R-[0-9]+[.][0-9]+[.][0-9]+[.]tar[.]gz", index, perl = TRUE)
+        )
+        archives <- unique(unlist(archive_matches, use.names = FALSE))
+        versions <- c(versions, sub("^R-", "", sub("[.]tar[.]gz$", "", archives)))
+      }
+      versions <- unique(versions[nzchar(versions)])
+      if (length(versions) == 0L) stop("no R releases found")
+      as.character(max(numeric_version(versions)))
+    },
+    error = function(condition) condition
+  )
+
+  if (inherits(latest_r, "condition")) {
+    add_check("R update check", "WARN", paste("unavailable:", conditionMessage(latest_r)))
+  } else if (numeric_version(latest_r) > getRversion()) {
+    add_check(
+      "R update check",
+      "WARN",
+      paste("installed", getRversion(), "and CRAN reports", latest_r, "; review before updating")
+    )
+  } else {
+    add_check("R update check", "PASS", paste("installed R", getRversion(), "is current for CRAN", latest_r))
+  }
+
+  outdated <- tryCatch(
+    utils::old.packages(repos = cran_repo),
+    error = function(condition) condition
+  )
+  if (inherits(outdated, "condition")) {
+    add_check("Package update check", "WARN", paste("unavailable:", conditionMessage(outdated)))
+  } else if (is.null(outdated) || nrow(outdated) == 0L) {
+    add_check("Package update check", "PASS", "installed CRAN packages are current")
+  } else {
+    package_names <- rownames(outdated)
+    shown <- paste(utils::head(package_names, 12L), collapse = ", ")
+    suffix <- if (length(package_names) > 12L) ", ..." else ""
+    add_check(
+      "Package update check",
+      "WARN",
+      paste0(length(package_names), " package update(s) available: ", shown, suffix, "; review before updating")
+    )
+  }
+}
+
 cat("R Ophthal Analysis self-test\n")
 cat("============================\n")
 
+rscript_name <- if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript"
+rscript_path <- normalizePath(file.path(R.home("bin"), rscript_name), mustWork = TRUE)
 add_check("R runtime", "PASS", paste(R.version$major, R.version$minor, sep = "."), required = TRUE)
+add_check("R executable", "PASS", rscript_path, required = TRUE)
+add_check("R library paths", "PASS", paste(.libPaths(), collapse = "; "), required = TRUE)
 
 skill_file <- file.path(repo_root, "SKILL.md")
 if (!file.exists(skill_file)) {
@@ -107,27 +240,61 @@ if (is.null(smoke_error)) {
   add_check("Scaffold smoke test", "FAIL", smoke_error, required = TRUE)
 }
 
-pandoc_path <- Sys.which("pandoc")
-quarto_path <- Sys.which("quarto")
-if (nzchar(pandoc_path) || nzchar(quarto_path)) {
-  renderer <- if (nzchar(pandoc_path)) pandoc_path else quarto_path
-  add_check("Report renderer", "PASS", renderer)
+pandoc_path <- find_pandoc()
+if (nzchar(pandoc_path)) {
+  add_check("Pandoc executable", "PASS", pandoc_path)
 } else {
-  add_check("Report renderer", "WARN", "Pandoc or Quarto is needed to render reports")
+  add_check("Pandoc executable", "WARN", "not found on PATH or through RStudio/rmarkdown discovery")
 }
 
 for (package in c("rmarkdown", "knitr")) {
   if (requireNamespace(package, quietly = TRUE)) {
-    add_check(paste("R package", package), "PASS", as.character(utils::packageVersion(package)))
+    compatible_build <- package_built_for_current_r(package)
+    status <- if (identical(compatible_build, FALSE)) "WARN" else "PASS"
+    suffix <- if (identical(compatible_build, FALSE)) "; built under a different R major/minor, review reinstall" else ""
+    add_check(paste("R package", package), status, paste0(package_detail(package), suffix))
   } else {
-    add_check(paste("R package", package), "WARN", "not installed; required only for R Markdown rendering")
+    add_check(paste("R package", package), "WARN", "not installed; required for R Markdown rendering")
   }
 }
 
-uvx_path <- Sys.which("uvx")
+if (!is.null(python_path)) {
+  python_path <- normalizePath(path.expand(python_path), mustWork = FALSE)
+  if (!file.exists(python_path)) {
+    add_check("Agent Python Pandoc access", "WARN", paste("Python interpreter not found:", python_path))
+  } else if (!nzchar(pandoc_path)) {
+    add_check("Agent Python Pandoc access", "WARN", "Pandoc was not found for Python to invoke")
+  } else {
+    probe <- file.path(repo_root, "scripts", "check_pandoc.py")
+    output <- tryCatch(
+      system2(
+        python_path,
+        c("-I", "-S", shQuote(probe), "--pandoc", shQuote(pandoc_path)),
+        stdout = TRUE,
+        stderr = TRUE
+      ),
+      error = function(condition) structure(conditionMessage(condition), status = 1L)
+    )
+    status <- attr(output, "status")
+    if (is.null(status) || status == 0L) {
+      add_check("Agent Python Pandoc access", "PASS", paste(output, collapse = " "))
+    } else {
+      add_check("Agent Python Pandoc access", "WARN", paste(output, collapse = " "))
+    }
+  }
+}
+
+uvx_path <- unname(Sys.which("uvx"))
 clauder_available <- requireNamespace("ClaudeR", quietly = TRUE)
 if (nzchar(uvx_path) && clauder_available) {
-  add_check("Optional RStudio MCP", "PASS", "uvx and ClaudeR are available")
+  clauder_compatible <- package_built_for_current_r("ClaudeR")
+  clauder_status <- if (identical(clauder_compatible, FALSE)) "WARN" else "PASS"
+  clauder_suffix <- if (identical(clauder_compatible, FALSE)) "; built under a different R major/minor, review reinstall and client reconfiguration" else ""
+  add_check(
+    "Optional RStudio MCP",
+    clauder_status,
+    paste0("uvx ", normalizePath(uvx_path, mustWork = TRUE), "; ClaudeR ", package_detail("ClaudeR"), clauder_suffix)
+  )
 } else {
   missing_optional <- c(if (!nzchar(uvx_path)) "uvx", if (!clauder_available) "ClaudeR")
   add_check(
@@ -135,6 +302,12 @@ if (nzchar(uvx_path) && clauder_available) {
     "WARN",
     paste(paste(missing_optional, collapse = " and "), "not available; direct Rscript remains usable")
   )
+}
+
+if (check_updates) {
+  check_cran_updates()
+} else {
+  add_check("R and package updates", "INFO", "not queried; use --check-updates for a non-installing CRAN comparison")
 }
 
 for (check in checks) {
