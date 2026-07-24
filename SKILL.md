@@ -31,6 +31,7 @@ Before the first R execution or environment-setup action in a task, run `Rscript
 - When R has been upgraded, moved, or starts loading a different library, run `Rscript scripts/selftest.R --check-updates`. Review the result with the user; never update R or packages automatically. After a major/minor R change, recheck required packages and rerun ClaudeR client configuration only with approval because R library paths may change.
 - For an agent that will invoke Pandoc from Python, pass that exact interpreter to the self-test: `Rscript scripts/selftest.R --python /absolute/path/to/python`. The check uses `scripts/check_pandoc.py`, which requires only the Python standard library. Use the reported absolute Pandoc executable rather than assuming it is on the Python sandbox's `PATH`.
 - R Markdown rendering requires `rmarkdown`, `knitr`, and an executable Pandoc. The self-test also discovers Pandoc bundled with RStudio through `rmarkdown::find_pandoc()`.
+- On Windows, let the self-test compile its disposable C probe before installing any package from source. Rtools is not normally needed for CRAN binary packages, but it is needed for packages with compiled code when only source installation is available. Use `--require-build-tools` only when source compilation is required. If the probe fails, consult the current CRAN Rtools page rather than guessing a version or path; never install Rtools without approval.
 
 ## Core Workflow
 

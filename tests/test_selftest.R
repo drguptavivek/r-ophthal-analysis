@@ -24,6 +24,8 @@ stopifnot(grepl("Scaffold smoke test", output, fixed = TRUE))
 stopifnot(grepl("Optional RStudio MCP", output, fixed = TRUE))
 stopifnot(grepl("R executable", output, fixed = TRUE))
 stopifnot(grepl("R library paths", output, fixed = TRUE))
+stopifnot(grepl("R package type", output, fixed = TRUE))
+stopifnot(grepl("Windows source build tools", output, fixed = TRUE))
 stopifnot(grepl("Pandoc executable", output, fixed = TRUE))
 
 python <- Sys.which("python3")

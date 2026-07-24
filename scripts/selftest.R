@@ -5,6 +5,7 @@ script_arg <- grep("^--file=", commandArgs(trailingOnly = FALSE), value = TRUE)
 script_path <- normalizePath(sub("^--file=", "", script_arg[[1]]), mustWork = TRUE)
 repo_root <- normalizePath(file.path(dirname(script_path), ".."), mustWork = TRUE)
 check_updates <- "--check-updates" %in% args
+require_build_tools <- "--require-build-tools" %in% args
 
 option_value <- function(name) {
   location <- match(name, args)
@@ -93,6 +94,67 @@ find_pandoc <- function() {
     }
   }
   ""
+}
+
+check_windows_build_tools <- function(required = FALSE) {
+  if (.Platform$OS.type != "windows") {
+    add_check(
+      "Windows source build tools",
+      "INFO",
+      "not applicable on this operating system; Rtools is Windows-only"
+    )
+    return(invisible(NULL))
+  }
+
+  probe_dir <- tempfile("r-ophthal-rtools-")
+  dir.create(probe_dir)
+  on.exit(unlink(probe_dir, recursive = TRUE, force = TRUE), add = TRUE)
+  writeLines(
+    "void r_ophthal_build_probe(void) {}",
+    file.path(probe_dir, "build_probe.c")
+  )
+
+  previous_dir <- getwd()
+  on.exit(setwd(previous_dir), add = TRUE)
+  setwd(probe_dir)
+  r_executable <- file.path(R.home("bin"), "R.exe")
+  output <- tryCatch(
+    system2(
+      r_executable,
+      c("CMD", "SHLIB", "build_probe.c"),
+      stdout = TRUE,
+      stderr = TRUE
+    ),
+    error = function(condition) structure(conditionMessage(condition), status = 1L)
+  )
+  status <- attr(output, "status")
+  library_created <- file.exists(file.path(probe_dir, paste0("build_probe", .Platform$dynlib.ext)))
+
+  if ((is.null(status) || status == 0L) && library_created) {
+    add_check(
+      "Windows source build tools",
+      "PASS",
+      paste(
+        "R CMD SHLIB compiled a disposable C source; toolchain works with R",
+        as.character(getRversion())
+      ),
+      required = required
+    )
+  } else {
+    diagnostic <- paste(output, collapse = " ")
+    if (!nzchar(diagnostic)) diagnostic <- "R CMD SHLIB did not create a shared library"
+    add_check(
+      "Windows source build tools",
+      if (required) "FAIL" else "WARN",
+      paste0(
+        "not ready for packages compiled from source: ", diagnostic,
+        ". Binary CRAN packages generally remain usable. Check the current Rtools version at ",
+        "https://cran.r-project.org/bin/windows/Rtools/"
+      ),
+      required = required
+    )
+  }
+  invisible(NULL)
 }
 
 package_detail <- function(package) {
@@ -189,6 +251,8 @@ rscript_path <- normalizePath(file.path(R.home("bin"), rscript_name), mustWork =
 add_check("R runtime", "PASS", paste(R.version$major, R.version$minor, sep = "."), required = TRUE)
 add_check("R executable", "PASS", rscript_path, required = TRUE)
 add_check("R library paths", "PASS", paste(.libPaths(), collapse = "; "), required = TRUE)
+add_check("R package type", "PASS", getOption("pkgType"), required = TRUE)
+check_windows_build_tools(required = require_build_tools)
 
 skill_file <- file.path(repo_root, "SKILL.md")
 if (!file.exists(skill_file)) {

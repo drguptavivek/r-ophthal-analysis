@@ -83,6 +83,7 @@ On macOS, choose **Finder → Go → Go to Folder…** and enter the path up to 
 - An AI agent that supports the Agent Skills format.
 - R and `Rscript` for analysis execution.
 - `rmarkdown`, `knitr`, and Pandoc when rendering `.Rmd` reports. Pandoc may come from the system or an RStudio installation.
+- On Windows only, Rtools when a package containing C, C++, or Fortran code must be installed from source. Normal CRAN binary-package installation does not require it.
 - Optional: RStudio, ClaudeR, `uvx`, and `clauder-mcp` for live RStudio MCP sessions.
 
 The skill must ask before installing R packages or changing MCP configuration. If the optional MCP path is unavailable, it should continue with `Rscript` and the same central `.Rmd` workflow.
@@ -94,6 +95,14 @@ Rscript scripts/selftest.R
 ```
 
 The self-test uses base R. It verifies the active R version, executable and library paths, package build locations, the core skill and scaffold, Pandoc, and optional RStudio MCP dependencies.
+
+On Windows, it also asks the active R installation to compile a disposable C source with `R CMD SHLIB`. This tests the real Rtools compiler and path configuration without installing a package. A missing toolchain is normally a warning because CRAN binaries still work. Require it only when source compilation is necessary:
+
+```bash
+Rscript scripts/selftest.R --require-build-tools
+```
+
+If that check fails, use the [official CRAN Rtools page](https://cran.r-project.org/bin/windows/Rtools/) to select the toolchain currently matched to the installed R version. Do not rely on a version number or installation path copied from older instructions.
 
 Compare the installed R and CRAN packages with current CRAN versions without changing anything:
 

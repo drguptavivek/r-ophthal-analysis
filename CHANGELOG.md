@@ -4,6 +4,10 @@ All notable changes to this skill are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- Windows Rtools readiness probe that compiles a disposable C source, plus a strict source-build mode and Windows CI coverage.
+
 ## [1.0.0] - 2026-07-25
 
 ### Added
