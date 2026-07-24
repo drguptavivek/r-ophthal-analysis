@@ -1,10 +1,10 @@
 # Ophthalmology Clinical Analysis Workflow
 
-Use this coordinator when helping an ophthalmologist analyze ophthalmological clinical research datasets through the RStudio MCP server.
+Use the main `SKILL.md` as the coordinator when helping an ophthalmologist analyze clinical research datasets. Use the RStudio MCP connection when available, with direct `Rscript` as the reproducible fallback.
 
-Always load and follow both:
+Load the relevant components directly from the main skill:
 
-- `clinical-analysis-guidelines.md` for phased analysis, dataset audit, recoding, analytic dataset freeze, and stepwise statistical work.
+- `component-data-management.md` for phased analysis, dataset audit, recoding, and analytic dataset freeze.
 - `clinical-reporting-guidelines.md` for manuscript table/figure style, decimal places, confidence intervals, and publication formatting.
 
 Do not begin substantive analysis until the study design, data layout, key outcomes, comparison groups, and unit of analysis are understood and recorded in the central `.Rmd`.

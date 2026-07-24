@@ -49,7 +49,7 @@ Generic components:
 - `y`: bilateral operated cataract, regardless of visual acuity.
 - `z`: bilateral operable cataract meeting the need threshold in both eyes.
 
-In the user's WHO 2022 RAAB convention, the compact variable name encodes need threshold and effective outcome threshold:
+In one project-specific WHO 2022 RAAB convention, the compact variable name encodes need threshold and effective outcome threshold:
 
 | Variable | Need threshold | Effective outcome threshold |
 | --- | --- | --- |
@@ -67,7 +67,7 @@ Keel/Ramke legacy variants add cataract-cause restrictions to the need component
 
 For refractive error indicators, define met, undermet, and unmet need explicitly before estimating REC/eREC.
 
-RAAB6 convention from the user's definition notes:
+RAAB6 convention from project definition notes:
 
 ```text
 RECraab6  = (A + B) / (A + B + C)
@@ -78,7 +78,7 @@ eRECraab6 = A / (A + B + C)
 - `B`: presents with spectacles or contact lenses for distance and PVA is worse than 6/12 in the better eye, but improves to at least 6/12 on pinhole VA in the better eye. This is undermet need.
 - `C`: presents without spectacles or contact lenses for distance and PVA is worse than 6/12 in the better eye, but improves to at least 6/12 on pinhole VA in the better eye. This is unmet need.
 
-RAAB7 convention from the user's definition notes:
+RAAB7 convention from project definition notes:
 
 ```text
 RECraab7  = (A + B) / (A + B + C)
@@ -89,7 +89,7 @@ eRECraab7 = A / (A + B + C)
 - `B`: presents with spectacles or contact lenses for distance, UCVA is worse than 6/12 in the better eye, corrected VA is worse than 6/12 in the better eye, but improves to at least 6/12 on pinhole VA. This is undermet need.
 - `C`: presents without spectacles, UCVA is worse than 6/12 in the better eye, and pinhole VA is at least 6/12 in the better eye. This is unmet need.
 
-WHO ECIM eREC convention from the user's definition notes:
+WHO ECIM eREC convention from project definition notes:
 
 ```text
 eRECwho = (A + B) / (A + B + C + D)

@@ -10,7 +10,7 @@ args = ["clauder-mcp"]
 
 For new workspaces, place this in the target project's `.codex/config.toml` by default. Do not add it to the global `~/.codex/config.toml` or global MCP list unless the user explicitly requests global setup.
 
-Known local behavior:
+Expected runtime behavior; verify entrypoints against the installed ClaudeR version:
 
 - First reachability probe: `mcp__r_studio__list_sessions`.
 - Missing session message: `No active R sessions found. Start the ClaudeR addin in RStudio first.`
@@ -28,9 +28,9 @@ Rscript -e 'cat("ClaudeR installed:", requireNamespace("ClaudeR", quietly=TRUE),
 Rscript -e 'd <- path.expand("~/.claude_r_sessions"); if (dir.exists(d)) cat(paste(readLines(list.files(d, pattern="[.]json$", full.names=TRUE)), collapse="\n"), "\n") else cat("No ClaudeR session directory\n")'
 ```
 
-For this installed package, `ClaudeR:::claudeAddin()` opens the current addin UI with a Port field. The older/internal `ClaudeR:::claude_rstudio_addin(port = 8787)` accepts a `port` argument, but prefer `ClaudeR:::claudeAddin()` unless deliberately using internal package functions.
+In ClaudeR versions exposing this entrypoint, `ClaudeR:::claudeAddin()` opens the addin UI with a Port field. Prefer the documented addin entrypoint for the installed version; do not rely on older internal functions or a fixed port.
 
-If the port is unavailable because RStudio or ClaudeR is not set up, tell the user to start RStudio and install/configure ClaudeR from <https://github.com/IMNMV/ClaudeR>:
+If the port is unavailable because RStudio or ClaudeR is not set up, ask before installing or configuring anything. Use the current instructions at <https://github.com/IMNMV/ClaudeR>; commands such as the following are examples and must be checked against the installed release:
 
 ```r
 if (!require("devtools")) install.packages("devtools")
