@@ -1,8 +1,6 @@
-# R Ophthal Analysis
+# Ophthal Analysis
 
-[![skills.sh](https://skills.sh/b/drguptavivek/r-ophthal-analysis)](https://skills.sh/drguptavivek/r-ophthal-analysis)
-
-An Agent Skill for stepwise ophthalmology clinical research analysis in R and R Markdown. It keeps the researcher in charge of outcome definitions, denominators, recoding, and modelling decisions while helping an AI agent produce auditable analysis, tables, figures, and labelled exports.
+An Agent Skill for stepwise ophthalmology clinical research analysis in R/R Markdown and explicitly requested native Stata. It keeps the researcher in charge of outcome definitions, denominators, recoding, and modelling decisions while helping an AI agent produce auditable analysis, tables, figures, and labelled exports.
 
 ## What it does
 
@@ -13,70 +11,33 @@ An Agent Skill for stepwise ophthalmology clinical research analysis in R and R 
 - Routes work to design-specific guidance for surveys, diagnostic accuracy, prediction, longitudinal data, survival analysis, trials, and meta-analysis.
 - Includes guarded WHO ECIM eCSC/eREC and companion-indicator guidance.
 - Produces publication-oriented tables, figures, and labelled Stata/SPSS exports.
+- Supports native Stata `dtable`/`collect`/`putdocx` reporting when explicitly requested, with complete do-files and preserved raw logs.
 - Works through an RStudio/ClaudeR MCP connection when available, with direct `Rscript` as the reproducible fallback.
 
 The skill is deliberately phase-gated: it does not define endpoints or proceed to complex models without researcher approval.
 
 ## Install
 
-### Recommended: npx
-
-Install from Vivek Gupta's curated agent-skills catalog:
+This checkout uses the skill name `ophthal-analysis`. Install this local version from the repository root:
 
 ```bash
-npx skills add drguptavivek/agent-skills --skill r-ophthal-analysis
+npx skills add . --skill ophthal-analysis --global --agent codex --yes
 ```
 
-Install globally for Codex:
+Alternatively, copy the complete folder into the agent's skills directory, preserving its examples, references and scripts. For Codex the renamed folder is `~/.codex/skills/ophthal-analysis`. Restart the agent if it does not discover the new name immediately.
 
-```bash
-npx skills add drguptavivek/agent-skills --skill r-ophthal-analysis --global --agent codex --yes
-```
-
-Install directly from this canonical repository:
-
-```bash
-npx skills add drguptavivek/r-ophthal-analysis
-```
-
-List the skill without installing it:
-
-```bash
-npx skills add drguptavivek/r-ophthal-analysis --list
-```
-
-These commands run the [`vercel-labs/skills`](https://github.com/vercel-labs/skills) installer through `npx`. This skill is hosted on GitHub; it is not a separate npm library and does not require an npm package publication.
-
-### If you do not use npx: ask your AI agent
-
-Copy and send this prompt to Codex, Claude Code, Cursor, or another agent that supports skills:
-
-```text
-Install the r-ophthal-analysis skill for me from
-https://github.com/drguptavivek/r-ophthal-analysis
-as a global user skill. Keep the whole skill folder together and confirm that
-SKILL.md and its references are discoverable. Do not change the skill files.
-```
-
-The agent can choose the correct installation method and skills folder for its own environment. Restart the agent if it does not detect the newly installed skill immediately.
-
-### Manual download without npx or Git
-
-1. Download the repository as a ZIP from [GitHub](https://github.com/drguptavivek/r-ophthal-analysis/archive/refs/heads/main.zip).
-2. Unzip it and rename the extracted folder to `r-ophthal-analysis`.
-3. Move the entire folder—not only `SKILL.md`—into your agent's global skills directory.
-4. Restart the agent and ask it to confirm that `$r-ophthal-analysis` is available.
-
-Common global locations are:
-
-| Agent | Destination folder |
+| Agent | Local destination |
 | --- | --- |
-| Codex | `~/.codex/skills/r-ophthal-analysis` |
-| Claude Code | `~/.claude/skills/r-ophthal-analysis` |
-| Cursor | `~/.cursor/skills/r-ophthal-analysis` |
-| Gemini CLI | `~/.gemini/skills/r-ophthal-analysis` |
+| Codex | `~/.codex/skills/ophthal-analysis` |
+| Claude Code | `~/.claude/skills/ophthal-analysis` |
+| Cursor | `~/.cursor/skills/ophthal-analysis` |
+| Gemini CLI | `~/.gemini/skills/ophthal-analysis` |
 
-On macOS, choose **Finder → Go → Go to Folder…** and enter the path up to `/skills/`. The `~` symbol means your home folder. If your agent uses a different location, ask it: “Where is your global user skills folder?”
+The repository URLs retain the existing `r-ophthal-analysis` slug. The renamed skill and examples are published on the `vg-work/publish-r-ophthal-analysis` branch. Install that branch directly:
+
+```bash
+npx skills add https://github.com/drguptavivek/r-ophthal-analysis/tree/vg-work/publish-r-ophthal-analysis --skill ophthal-analysis
+```
 
 ## Prerequisites
 
@@ -129,7 +90,7 @@ The bundled `scripts/check_pandoc.py` uses only Python's standard library and is
 Invoke the installed skill explicitly when desired:
 
 ```text
-Use $r-ophthal-analysis to audit this ophthalmology dataset and build the analysis step by step in R Markdown.
+Use $ophthal-analysis to audit this ophthalmology dataset and build the analysis step by step in R Markdown.
 ```
 
 The coordinating workflow is in [`SKILL.md`](SKILL.md). Detailed guidance is loaded progressively from [`references/`](references/), and the optional base-R scaffold is in [`scripts/scaffold_analysis_guidelines.R`](scripts/scaffold_analysis_guidelines.R).
@@ -137,7 +98,7 @@ The coordinating workflow is in [`SKILL.md`](SKILL.md). Detailed guidance is loa
 Run the scaffold from the target analysis project, not from the skill repository:
 
 ```bash
-Rscript /path/to/r-ophthal-analysis/scripts/scaffold_analysis_guidelines.R /path/to/analysis-project
+Rscript /path/to/ophthal-analysis/scripts/scaffold_analysis_guidelines.R /path/to/analysis-project
 ```
 
 It creates:
@@ -161,11 +122,7 @@ npx skills add . --list
 
 The scaffold, tests, and self-test use base R only. Continuous integration runs these checks plus skill discovery. Maintainers should also validate `SKILL.md` with their agent platform's skill-authoring validator before release.
 
-Update an installed copy through the skills CLI:
-
-```bash
-npx skills update r-ophthal-analysis
-```
+Update a published installation through the skills CLI using its installed name. Preserve any local edits before an update.
 
 ## Source and marketplace
 
@@ -176,3 +133,19 @@ This repository is the canonical source. The copy at [`drguptavivek/agent-skills
 Original skill instructions and code are released under the [MIT License](LICENSE). Named standards, software, methods, and third-party source material remain the property of their respective owners. References to WHO, RAAB, R, RStudio, ClaudeR, Stata, SPSS, or other projects do not imply affiliation or endorsement.
 
 Clinical and public-health definitions must always be checked against the current study protocol and authoritative source before analysis.
+
+## Publication Table Examples
+
+Hierarchical tables with indented category/summary rows are the default in R and Stata. The shared layout uses outcome-specific N, observed group n, indented summary/category rows, and unadjusted p only. Reports contain no automatic interpretation and only essential footnotes. R/R Markdown remains the default; researcher approval gates still apply.
+
+- [R example index](examples/r/README.md): `examples/r/publication_tables.Rmd`, parameter `ngroups` (2 or 3). See `references/component-rmd-reporting.md`.
+- [Stata example index](examples/stata/README.md): `examples/stata/example_stata_table1.do` and `examples/stata/example_stata_logistic.do`. See `references/component-stata-reporting.md`.
+
+```stata
+do examples/stata/example_stata_table1.do 2 "/absolute/scratch/table1_two"
+do examples/stata/example_stata_table1.do 3 "/absolute/scratch/table1_three"
+do examples/stata/example_stata_logistic.do 2 "/absolute/scratch/logistic_two"
+do examples/stata/example_stata_logistic.do 3 "/absolute/scratch/logistic_three"
+```
+
+The R example includes Table 1 and logistic regression; the two Stata files provide these separately. Logistic tables have variable/category rows, N, outcome %, univariable OR [95% CI] and multivariable OR [95% CI]. They generate clearly marked synthetic results. They do not read patient data. Use a scratch directory and review rendered outputs before adapting the pattern to an approved frozen study dataset.

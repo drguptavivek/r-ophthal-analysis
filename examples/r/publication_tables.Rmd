@@ -1,0 +1,436 @@
+---
+title: "Publication tables for an ophthalmology analysis"
+author: "Ophthal Analysis"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+params:
+  ngroups: 3
+  seed: 20261011
+output:
+  html_document:
+    toc: false
+    df_print: paged
+  word_document:
+    toc: false
+---
+
+```{r setup, include=FALSE}
+required_packages <- c("flextable", "ggplot2", "knitr", "officer")
+missing_packages <- required_packages[!vapply(required_packages, requireNamespace,
+                                              logical(1), quietly = TRUE)]
+if (length(missing_packages)) {
+  stop("Required packages are missing; install them before rendering: ",
+       paste(missing_packages, collapse = ", "))
+}
+
+knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = TRUE,
+                      out.width = "95%")
+set.seed(params$seed)
+
+if (length(params$ngroups) != 1L || !is.numeric(params$ngroups) ||
+    is.na(params$ngroups) || !params$ngroups %in% c(2L, 3L)) {
+  stop("params$ngroups must be numeric 2 or 3.")
+}
+analysis_groups <- if (params$ngroups == 2L) {
+  c("Control", "Severe")
+} else {
+  c("Control", "Moderate", "Severe")
+}
+```
+
+Synthetic participant-level example. Test choices and adjustment variables require approval before use in a study.
+
+```{r synthetic-data}
+make_example_data <- function(seed = 20261011) {
+  set.seed(seed)
+  group <- factor(rep(c("Control", "Moderate", "Severe"), each = 12),
+                  levels = c("Control", "Moderate", "Severe"))
+  group_index <- as.integer(group)
+  sex <- factor(rep(c("Female", "Male"), 18),
+                levels = c("Female", "Male"))
+  family_history <- factor(rep(c("No", "Yes"), each = 18),
+                           levels = c("No", "Yes"))
+  outcome_lp <- -0.8 + 0.8 * (sex == "Male") + 0.9 * (family_history == "Yes")
+  binary_outcome <- rbinom(36, 1, stats::plogis(outcome_lp))
+
+  out <- data.frame(
+    participant_id = seq_len(36),
+    group = group,
+    sex = sex,
+    family_history = family_history,
+    binary_outcome = binary_outcome,
+    iop_mmHg = round(rnorm(36, c(14, 18, 22)[group_index], 2.2), 1),
+    md_dB = round(rnorm(36, c(-1, -3, -5)[group_index], 1.5), 1),
+    lens_status = factor(ifelse(group == "Control", "Clear",
+                                ifelse(group == "Moderate", "Cataract", "Cataract")),
+                         levels = c("Clear", "Cataract", "Other")),
+    visual_field_class = factor(ifelse(group == "Control", "Normal", "Reduced"),
+                                levels = c("Normal", "Reduced", "Unreliable")),
+    laterality = factor(sample(c("Right", "Left", "Both"), 36, replace = TRUE),
+                        levels = c("Right", "Left", "Both")),
+    stringsAsFactors = FALSE
+  )
+
+  # Deliberate, outcome-specific missingness for the example.
+  out$iop_mmHg[c(5, 17)] <- NA_real_
+  out$md_dB[c(3, 9, 15, 22, 30)] <- NA_real_
+  out$laterality[c(7, 28)] <- NA
+  out
+}
+
+dat_all <- make_example_data(params$seed)
+dat <- dat_all[dat_all$group %in% analysis_groups, , drop = FALSE]
+dat$group <- factor(dat$group, levels = analysis_groups)
+
+stopifnot(nrow(dat_all) == 36L,
+          identical(levels(dat$group), analysis_groups),
+          all(table(dat$group) > 0),
+          all(table(dat$sex) > 0),
+          all(table(dat$family_history) > 0),
+          all(rowSums(table(dat$sex, dat$binary_outcome)) > 0),
+          all(rowSums(table(dat$family_history, dat$binary_outcome)) > 0))
+```
+
+```{r statistical-helpers}
+continuous_specs <- data.frame(
+  var = c("iop_mmHg", "md_dB"),
+  label = c("Intraocular pressure", "Mean deviation"),
+  unit = c("mmHg", "dB"),
+  stringsAsFactors = FALSE
+)
+categorical_specs <- data.frame(
+  var = c("lens_status", "visual_field_class", "laterality"),
+  label = c("Lens status", "Visual-field class", "Laterality"),
+  stringsAsFactors = FALSE
+)
+
+fmt_p <- function(p) {
+  if (is.na(p)) return("Not estimable")
+  if (p < 0.001) return("<0.001")
+  formatC(p, format = "f", digits = 3)
+}
+
+fmt_mean_sd <- function(x) {
+  if (length(x) < 2L) return("Not estimable")
+  sprintf("%.1f (%.1f)", mean(x), stats::sd(x))
+}
+
+fmt_median_iqr <- function(x) {
+  if (!length(x)) return("Not estimable")
+  qs <- stats::quantile(x, probs = c(0.25, 0.50, 0.75), names = FALSE,
+                        na.rm = TRUE, type = 7)
+  sprintf("%.1f (%.1f, %.1f)", qs[2], qs[1], qs[3])
+}
+
+continuous_p <- function(x, group, n_groups) {
+  keep <- !is.na(x) & !is.na(group)
+  x <- x[keep]
+  group <- droplevels(group[keep])
+  if (n_groups == 3L) {
+    stats::kruskal.test(x ~ group)$p.value
+  } else {
+    stats::wilcox.test(x ~ group, exact = FALSE, correct = FALSE)$p.value
+  }
+}
+
+categorical_p <- function(x, group) {
+  keep <- !is.na(x) & !is.na(group)
+  tab <- table(droplevels(x[keep]), droplevels(group[keep]))
+  # Factor levels are displayed in full; empty margins are excluded only from
+  # Fisher's test because they contain no observed information.
+  tab_test <- tab[rowSums(tab) > 0, colSums(tab) > 0, drop = FALSE]
+  if (nrow(tab_test) < 2L || ncol(tab_test) < 2L) return(NA_real_)
+  stats::fisher.test(tab_test)$p.value
+}
+
+group_value <- function(x, group, level, fun) {
+  fun(x[group == level & !is.na(x)])
+}
+
+group_n <- function(x, group, level) {
+  sum(group == level & !is.na(x))
+}
+
+assert_group_counts <- function(x, group) {
+  observed <- sum(!is.na(x))
+  by_group <- sum(vapply(analysis_groups, function(g) group_n(x, group, g), integer(1)))
+  stopifnot(observed == by_group)
+  invisible(observed)
+}
+
+check_p <- function(p) {
+  stopifnot(length(p) == 1L, !is.na(p), is.finite(p), p >= 0, p <= 1)
+  invisible(p)
+}
+```
+
+## Descriptive characteristics
+
+```{r continuous-table, results='asis'}
+make_continuous_block <- function(spec) {
+  x <- dat[[spec$var]]
+  assert_group_counts(x, dat$group)
+  p <- check_p(continuous_p(x, dat$group, length(analysis_groups)))
+  parent <- data.frame(
+    row_type = "parent",
+    summary = sprintf("%s (%s), N=%d", spec$label, spec$unit, sum(!is.na(x))),
+    p = fmt_p(p),
+    stringsAsFactors = FALSE
+  )
+  for (g in analysis_groups) {
+    parent[[g]] <- sprintf("n=%d", group_n(x, dat$group, g))
+  }
+  child_mean <- data.frame(row_type = "child", summary = "\u00a0\u00a0Mean (SD)",
+                           p = "", stringsAsFactors = FALSE)
+  child_median <- data.frame(row_type = "child",
+                             summary = "\u00a0\u00a0Median (p25, p75)",
+                             p = "", stringsAsFactors = FALSE)
+  for (g in analysis_groups) {
+    child_mean[[g]] <- group_value(x, dat$group, g, fmt_mean_sd)
+    child_median[[g]] <- group_value(x, dat$group, g, fmt_median_iqr)
+  }
+  out <- rbind(parent, child_mean, child_median)
+  out[c("summary", analysis_groups, "p", "row_type")]
+}
+
+continuous_blocks <- lapply(seq_len(nrow(continuous_specs)), function(i) {
+  make_continuous_block(continuous_specs[i, , drop = FALSE])
+})
+continuous_rows <- do.call(rbind, continuous_blocks)
+
+make_categorical_block <- function(spec) {
+  x <- dat[[spec$var]]
+  assert_group_counts(x, dat$group)
+  p <- check_p(categorical_p(x, dat$group))
+  parent <- data.frame(
+    row_type = "parent",
+    summary = sprintf("%s, N=%d", spec$label, sum(!is.na(x))),
+    p = fmt_p(p),
+    stringsAsFactors = FALSE
+  )
+  for (g in analysis_groups) {
+    parent[[g]] <- sprintf("n=%d", group_n(x, dat$group, g))
+  }
+  child <- lapply(levels(x), function(level) {
+    row <- data.frame(row_type = "child",
+                      summary = paste0("\u00a0\u00a0", level),
+                      p = "", stringsAsFactors = FALSE)
+    for (g in analysis_groups) {
+      n <- group_n(x, dat$group, g)
+      count <- sum(x == level & dat$group == g, na.rm = TRUE)
+      row[[g]] <- if (n == 0L) "" else sprintf("%d (%.1f%%)", count, 100 * count / n)
+    }
+    row
+  })
+  out <- do.call(rbind, c(list(parent), child))
+  out[c("summary", analysis_groups, "p", "row_type")]
+}
+
+categorical_rows <- do.call(rbind, lapply(seq_len(nrow(categorical_specs)), function(i) {
+  make_categorical_block(categorical_specs[i, , drop = FALSE])
+}))
+```
+
+```{r continuous-table-render, results='asis'}
+make_publication_table <- function(rows, caption,
+                                   first_label = "Outcome / summary",
+                                   column_widths = NULL) {
+  visible <- rows[setdiff(names(rows), "row_type")]
+  names(visible)[names(visible) == "summary"] <- "Outcome / summary"
+  if ("p" %in% names(visible)) names(visible)[names(visible) == "p"] <- "Unadjusted p"
+  names(visible)[names(visible) == "Outcome / summary"] <- first_label
+
+  ft <- flextable::flextable(visible)
+  rule <- officer::fp_border(color = "#000000", width = 1)
+  ft <- flextable::border_remove(ft)
+  ft <- flextable::hline_top(ft, border = rule, part = "header")
+  ft <- flextable::hline_bottom(ft, border = rule, part = "header")
+  ft <- flextable::hline_bottom(ft, border = rule, part = "body")
+  ft <- flextable::font(ft, fontname = "Times New Roman", part = "all")
+  ft <- flextable::fontsize(ft, size = 10, part = "all")
+  ft <- flextable::color(ft, color = "#000000", part = "all")
+  ft <- flextable::bg(ft, bg = "#FFFFFF", part = "all")
+  ft <- flextable::align(ft, j = 1, align = "left", part = "all")
+  ft <- flextable::align(ft, j = seq.int(2, ncol(visible)), align = "center", part = "all")
+  ft <- flextable::padding(ft, padding = 3, part = "all")
+  ft <- flextable::bold(ft, part = "header")
+  if (is.null(column_widths)) {
+    if ("Unadjusted p" %in% names(visible)) {
+      group_width <- (6.3 - 2.4 - 0.9) / length(analysis_groups)
+      column_widths <- c(setNames(2.4, first_label),
+                         setNames(rep(group_width, length(analysis_groups)), analysis_groups),
+                         setNames(0.9, "Unadjusted p"))
+    } else {
+      column_widths <- c(setNames(2.4, first_label),
+                         setNames(c(0.6, 0.8, 1.25, 1.25), names(visible)[2:5]))
+    }
+  }
+  for (column in names(column_widths)) {
+    ft <- flextable::width(ft, j = column, width = unname(column_widths[[column]]))
+  }
+  ft <- flextable::set_table_properties(
+    ft, layout = "fixed", width = 1,
+    opts_word = list(split = FALSE, repeat_headers = TRUE)
+  )
+  ft <- flextable::padding(ft, i = which(rows$row_type == "child"), j = 1,
+                           padding.left = 12, part = "body")
+  ft <- flextable::paginate(ft, init = TRUE, hdr_ftr = TRUE)
+  parent_rows <- which(rows$row_type == "parent")
+  ft <- flextable::bold(ft, i = parent_rows, j = seq_len(ncol(visible)),
+                        bold = TRUE, part = "body")
+  ft <- flextable::set_caption(ft, caption)
+  ft
+}
+
+descriptive_rows <- rbind(continuous_rows, categorical_rows)
+make_publication_table(descriptive_rows,
+                       "Table 1. Descriptive characteristics by comparison group")
+```
+
+p: `r if (params$ngroups == 3) "Kruskal–Wallis" else "asymptotic Wilcoxon rank-sum"` (continuous); Fisher's exact (categorical).
+
+## Continuous outcomes
+
+```{r continuous-outcome-table, results='asis'}
+make_publication_table(continuous_rows,
+                       "Table 2. Continuous outcomes by comparison group")
+```
+
+```{r continuous-graphs, fig.cap="Figure 1. Continuous outcomes by comparison group.", echo=FALSE}
+plot_data <- rbind(
+  data.frame(group = dat$group, value = dat$iop_mmHg,
+             outcome = "Intraocular pressure (mmHg)"),
+  data.frame(group = dat$group, value = dat$md_dB,
+             outcome = "Mean deviation (dB)")
+)
+ggplot2::ggplot(plot_data, ggplot2::aes(x = group, y = value)) +
+  ggplot2::geom_boxplot(na.rm = TRUE, width = 0.55, outlier.shape = 16) +
+  ggplot2::facet_wrap(~ outcome, scales = "free_y") +
+  ggplot2::labs(x = NULL, y = NULL) +
+  ggplot2::theme_classic(base_family = "Times New Roman", base_size = 10)
+```
+
+## Binary outcome associations
+
+```{r regression-helpers}
+regression_predictors <- data.frame(
+  var = c("sex", "family_history"),
+  label = c("Sex", "Family history"),
+  reference = c("Female", "No"),
+  stringsAsFactors = FALSE
+)
+
+regression_data <- dat[complete.cases(dat[, c("binary_outcome", regression_predictors$var),
+                                           drop = FALSE]), , drop = FALSE]
+regression_n <- nrow(regression_data)
+stopifnot(regression_n > 0L,
+          all(table(regression_data$binary_outcome) > 0))
+
+fit_univariable <- lapply(regression_predictors$var, function(variable) {
+  stats::glm(stats::reformulate(variable, response = "binary_outcome"),
+             data = regression_data, family = stats::binomial())
+})
+names(fit_univariable) <- regression_predictors$var
+fit_multivariable <- stats::glm(
+  stats::reformulate(regression_predictors$var, response = "binary_outcome"),
+  data = regression_data, family = stats::binomial()
+)
+
+# Fail before printing a model that did not converge or dropped terms.
+all_fits <- c(fit_univariable, list(fit_multivariable))
+stopifnot(all(vapply(all_fits, function(fit) {
+  isTRUE(fit$converged) && !isTRUE(fit$boundary) &&
+    stats::nobs(fit) == regression_n &&
+    all(is.finite(stats::coef(fit))) && all(is.finite(stats::vcov(fit)))
+}, logical(1))))
+
+null_fit <- stats::glm(binary_outcome ~ 1, data = regression_data,
+                       family = stats::binomial())
+model_ll <- as.numeric(stats::logLik(fit_multivariable))
+null_ll <- as.numeric(stats::logLik(null_fit))
+model_lr <- 2 * (model_ll - null_ll)
+model_df <- attr(stats::logLik(fit_multivariable), "df") -
+  attr(stats::logLik(null_fit), "df")
+model_p <- stats::pchisq(model_lr, df = model_df, lower.tail = FALSE)
+model_neg2ll <- -2 * model_ll
+model_pseudo_r2 <- 1 - model_ll / null_ll
+stopifnot(isTRUE(null_fit$converged), is.finite(model_neg2ll),
+          model_df > 0, model_lr >= 0, is.finite(model_pseudo_r2))
+
+wald_or <- function(fit, term) {
+  beta <- stats::coef(fit)[term]
+  ci <- stats::confint.default(fit, parm = term, level = 0.95)
+  stopifnot(is.finite(beta), all(is.finite(ci)),
+            all(is.finite(exp(c(beta, ci)))), all(exp(c(beta, ci)) > 0))
+  sprintf("%.2f [%.2f, %.2f]", exp(beta), exp(ci[1]), exp(ci[2]))
+}
+
+outcome_percent <- function(x) {
+  sprintf("%.1f%%", 100 * mean(x == 1L))
+}
+```
+
+```{r regression-table, results='asis'}
+make_regression_block <- function(spec) {
+  x <- regression_data[[spec$var]]
+  univariable_fit <- fit_univariable[[spec$var]]
+  parent <- data.frame(
+    row_type = "parent",
+    summary = spec$label,
+    N = as.character(length(x)),
+    `Outcome=1 (%)` = outcome_percent(regression_data$binary_outcome),
+    `Univariable OR [95% CI]` = "",
+    `Multivariable OR [95% CI]` = "",
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+  children <- lapply(levels(x), function(level) {
+    reference <- identical(level, spec$reference)
+    n <- sum(x == level)
+    y <- regression_data$binary_outcome[x == level]
+    row <- data.frame(
+      row_type = "child",
+      summary = paste0("\u00a0\u00a0", level,
+                       if (reference) " (Reference)" else ""),
+      N = as.character(n),
+      `Outcome=1 (%)` = outcome_percent(y),
+      `Univariable OR [95% CI]` = if (reference) "1.00 [Reference]" else {
+        wald_or(univariable_fit, paste0(spec$var, level))
+      },
+      `Multivariable OR [95% CI]` = if (reference) "1.00 [Reference]" else {
+        wald_or(fit_multivariable, paste0(spec$var, level))
+      },
+      stringsAsFactors = FALSE,
+      check.names = FALSE
+    )
+    row
+  })
+  do.call(rbind, c(list(parent), children))
+}
+
+regression_rows <- do.call(rbind, lapply(seq_len(nrow(regression_predictors)), function(i) {
+  make_regression_block(regression_predictors[i, , drop = FALSE])
+}))
+
+make_publication_table(
+  regression_rows,
+  sprintf("Table 3. Binary outcome=1 associations (complete model sample N=%d)", regression_n),
+  first_label = "Variable / category",
+  column_widths = c("Variable / category" = 2.4, N = 0.6, `Outcome=1 (%)` = 0.8,
+                    `Univariable OR [95% CI]` = 1.25,
+                    `Multivariable OR [95% CI]` = 1.25)
+)
+```
+
+95% Wald CIs. Multivariable model includes sex and family history.
+
+Multivariable model: N=`r regression_n`; LR χ²(`r model_df`)=`r sprintf("%.2f", model_lr)`, p=`r fmt_p(model_p)`; −2LL=`r sprintf("%.2f", model_neg2ll)`; McFadden pseudo-R²=`r sprintf("%.3f", model_pseudo_r2)`.
+
+## Reproducibility record
+
+```{r reproducibility}
+cat("Number of groups: ", params$ngroups, "\n", sep = "")
+cat("Seed: ", params$seed, "\n", sep = "")
+cat("Groups: ", paste(analysis_groups, collapse = ", "), "\n", sep = "")
+cat("\nSession information:\n")
+print(sessionInfo())
+```
