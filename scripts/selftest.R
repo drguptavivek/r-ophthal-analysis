@@ -243,7 +243,7 @@ check_cran_updates <- function() {
   }
 }
 
-cat("R Ophthal Analysis self-test\n")
+cat("Ophthal Analysis self-test\n")
 cat("============================\n")
 
 rscript_name <- if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript"

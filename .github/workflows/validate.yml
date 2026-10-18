@@ -31,7 +31,7 @@ jobs:
         run: Rscript --vanilla scripts/selftest.R
 
       - name: Verify Agent Skill discovery
-        run: npx -y skills add . --list | grep -q 'r-ophthal-analysis'
+        run: npx -y skills add . --list | grep -q 'ophthal-analysis'
 
   validate-windows-build-tools:
     runs-on: windows-latest
