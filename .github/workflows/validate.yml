@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
@@ -25,7 +25,7 @@ jobs:
         run: Rscript -e 'install.packages("survey")'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "24"
 
@@ -36,7 +36,11 @@ jobs:
         run: Rscript --vanilla scripts/selftest.R
 
       - name: Verify Agent Skill discovery
-        run: npx -y skills add . --list | grep -q 'ophthal-analysis'
+        shell: bash
+        run: |
+          # Write the listing to a file first: grep -q closes a pipe early and npx then fails with EPIPE
+          npx -y skills add . --list > "$RUNNER_TEMP/skills-list.txt"
+          grep -q 'ophthal-analysis' "$RUNNER_TEMP/skills-list.txt"
 
       - name: Verify Antigravity CLI installation
         shell: bash
@@ -48,12 +52,15 @@ jobs:
           test -f .agents/skills/ophthal-analysis/SKILL.md
           test -f .agents/skills/ophthal-analysis/examples/r/publication_tables.Rmd
           test -f .agents/skills/ophthal-analysis/references/component-stata-reporting.md
+          test -f .agents/skills/ophthal-analysis/references/burden-projection.md
+          test -f .agents/skills/ophthal-analysis/reference-data/india-population/project_district_population.R
+          test -f .agents/skills/ophthal-analysis/reference-data/india-population/india_district_population_projection_2026.csv.gz
 
   validate-windows-build-tools:
     runs-on: windows-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up R and its matching Windows toolchain
         uses: r-lib/actions/setup-r@v2
