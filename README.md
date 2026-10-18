@@ -18,26 +18,42 @@ The skill is deliberately phase-gated: it does not define endpoints or proceed t
 
 ## Install
 
-This checkout uses the skill name `ophthal-analysis`. Install this local version from the repository root:
+Install from this repository's default branch (`main`). The repository keeps its existing `r-ophthal-analysis` URL; the skill name is `ophthal-analysis`.
+
+For **Antigravity CLI (`agy`)**, run this in your analysis project. The project installation works with its current skill discovery:
 
 ```bash
-npx skills add . --skill ophthal-analysis --global --agent codex --yes
+npx skills add drguptavivek/r-ophthal-analysis --skill ophthal-analysis --agent antigravity-cli --yes
 ```
 
-Alternatively, copy the complete folder into the agent's skills directory, preserving its examples, references and scripts. For Codex the renamed folder is `~/.codex/skills/ophthal-analysis`. Restart the agent if it does not discover the new name immediately.
+Launch `agy` in that project and ask it to use the `ophthal-analysis` skill. Restart an existing CLI session after installation so it discovers the skill. The installer target is `antigravity-cli`, not the separate Antigravity IDE target `antigravity`.
 
-| Agent | Local destination |
+For a **global agy installation**, current `agy` discovers `~/.gemini/config/skills/`. The `skills` installer version 1.7.2 instead targets `~/.gemini/antigravity-cli/skills/`. Until those paths agree, install with npx and link this one skill into agy's discovery directory:
+
+```bash
+npx skills add drguptavivek/r-ophthal-analysis --skill ophthal-analysis --global --agent antigravity-cli --yes
+mkdir -p ~/.gemini/config/skills
+ln -s ~/.gemini/antigravity-cli/skills/ophthal-analysis ~/.gemini/config/skills/ophthal-analysis
+```
+
+The link keeps subsequent npx updates visible to agy. `ln -s` refuses to overwrite an existing destination; inspect an existing copy or link before changing it.
+
+For Codex:
+
+```bash
+npx skills add drguptavivek/r-ophthal-analysis --skill ophthal-analysis --global --agent codex --yes
+```
+
+To install a local checkout instead, replace `drguptavivek/r-ophthal-analysis` with `.` and run from the repository root. Alternatively, copy the complete folder into the agent's skills directory, preserving its examples, references and scripts.
+
+| Agent | Global destination |
 | --- | --- |
 | Codex | `~/.codex/skills/ophthal-analysis` |
 | Claude Code | `~/.claude/skills/ophthal-analysis` |
 | Cursor | `~/.cursor/skills/ophthal-analysis` |
-| Gemini CLI | `~/.gemini/skills/ophthal-analysis` |
+| Antigravity CLI (`agy`) | `~/.gemini/config/skills/ophthal-analysis` (link to npx installation above) |
 
-The repository URLs retain the existing `r-ophthal-analysis` slug. The renamed skill and examples are published on the `vg-work/publish-r-ophthal-analysis` branch. Install that branch directly:
-
-```bash
-npx skills add https://github.com/drguptavivek/r-ophthal-analysis/tree/vg-work/publish-r-ophthal-analysis --skill ophthal-analysis
-```
+The project command installs under `.agents/skills/ophthal-analysis/`. See the [skills installer agent list](https://github.com/vercel-labs/skills#supported-agents) and [Google's skill documentation](https://antigravity.google/docs/skills?app=cli).
 
 ## Prerequisites
 

@@ -33,6 +33,17 @@ jobs:
       - name: Verify Agent Skill discovery
         run: npx -y skills add . --list | grep -q 'ophthal-analysis'
 
+      - name: Verify Antigravity CLI installation
+        shell: bash
+        run: |
+          skill_source="$GITHUB_WORKSPACE"
+          install_dir="$(mktemp -d)"
+          cd "$install_dir"
+          npx -y skills add "$skill_source" --skill ophthal-analysis --agent antigravity-cli --copy --yes
+          test -f .agents/skills/ophthal-analysis/SKILL.md
+          test -f .agents/skills/ophthal-analysis/examples/r/publication_tables.Rmd
+          test -f .agents/skills/ophthal-analysis/references/component-stata-reporting.md
+
   validate-windows-build-tools:
     runs-on: windows-latest
     steps:
