@@ -17,3 +17,5 @@ Clarify:
 Use `meta` and `metafor` for standard meta-analysis. Report forest plots, pooled estimates with 95% CIs, heterogeneity, model choice, and sensitivity analyses.
 
 For diagnostic-test meta-analysis, discuss the appropriate model before proceeding; do not simply pool sensitivity and specificity without checking whether bivariate/HSROC methods are needed.
+
+Related: `clinical-study-designs.md`, `clinical-diagnostic-prediction.md`.

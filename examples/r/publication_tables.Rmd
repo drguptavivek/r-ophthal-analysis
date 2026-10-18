@@ -7,8 +7,13 @@ params:
   seed: 20261011
 output:
   html_document:
-    toc: false
-    df_print: paged
+    toc: true
+    toc_float:
+      collapsed: false
+    toc_depth: 3
+    number_sections: false
+    code_folding: hide
+    df_print: kable
   word_document:
     toc: false
 ---
@@ -22,8 +27,8 @@ if (length(missing_packages)) {
        paste(missing_packages, collapse = ", "))
 }
 
-knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = TRUE,
-                      out.width = "95%")
+knitr::opts_chunk$set(echo = knitr::is_html_output(), warning = TRUE,
+                      message = FALSE, comment = NA, out.width = "95%")
 set.seed(params$seed)
 
 if (length(params$ngroups) != 1L || !is.numeric(params$ngroups) ||
@@ -427,10 +432,8 @@ Multivariable model: N=`r regression_n`; LR χ²(`r model_df`)=`r sprintf("%.2f"
 
 ## Reproducibility record
 
+Groups: `r paste(analysis_groups, collapse = ", ")` (n=`r params$ngroups`). Seed: `r params$seed`.
+
 ```{r reproducibility}
-cat("Number of groups: ", params$ngroups, "\n", sep = "")
-cat("Seed: ", params$seed, "\n", sep = "")
-cat("Groups: ", paste(analysis_groups, collapse = ", "), "\n", sep = "")
-cat("\nSession information:\n")
-print(sessionInfo())
+sessionInfo()
 ```

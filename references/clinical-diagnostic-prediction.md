@@ -48,3 +48,5 @@ Use cross-validation inside training for model selection/tuning. Consider repeat
 Prevent data leakage: preprocessing, imputation, scaling, feature selection, and threshold tuning must be learned inside training/resampling only.
 
 Compare ML models against simple baselines. Report discrimination, calibration, clinical usefulness, confusion matrix metrics, RMSE/MAE for continuous outcomes, algorithm, tuning grid, resampling design, preprocessing recipe, final hyperparameters, and final validation performance.
+
+Related: `glaucoma-endpoints.md`, `diabetic-retinopathy.md`, `clinical-reporting-guidelines.md`.

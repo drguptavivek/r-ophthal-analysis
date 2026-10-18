@@ -18,4 +18,6 @@ Propose the primary handling strategy and wait for researcher approval. State th
 - In prediction work, learn imputation only within training or resampling data to prevent leakage.
 - Report the actual N and denominator used for every principal result.
 
-Record the approved plan and deviations in the central `.Rmd`.
+Record the approved plan and deviations in the charter decision log; apply it in `020_explore_clean` or `030_derive_label_freeze`.
+
+Related: `component-data-management.md`, `clinical-longitudinal-repeated.md`, `clinical-complex-surveys.md`.

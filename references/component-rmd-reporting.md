@@ -4,29 +4,42 @@ Use this component for R Markdown output. For explicitly requested native Stata,
 
 Use `../examples/r/publication_tables.Rmd` for runnable, parameterised two-/three-group publication tables in HTML and Word. The example uses synthetic data and includes a unified Table 1, continuous outcome comparisons with an adjacent graph, and hierarchical logistic regression results. Comparison tables have unadjusted p only; models show N, outcome %, univariable OR [95% CI] and multivariable OR [95% CI], with no p columns. It contains no automatic interpretation.
 
-## R Markdown Structure
+## Output Settings
 
-Use headings and subheadings for the analysis charter, data governance, reproducibility setup, source-data provenance, data audit, missing-data plan, cleaning/recoding, analytic dataset freeze, simple tables, key outcomes, figures, deeper models, interpretation only when explicitly requested, and appendices.
+Every stage and analysis `.Rmd` uses a left floating table of contents, unnumbered headings, and folded code:
 
-Set chunk defaults deliberately:
-
-```r
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = TRUE)
+```yaml
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+    toc_depth: 3
+    number_sections: false
+    code_folding: hide
+    df_print: kable
 ```
 
-Show main analysis code by default. Keep warnings visible until they have been reviewed; silence only a known, documented warning in the specific chunk that produces it. Use `echo=FALSE` for chunks that only create table footnotes, figure legends, captions, styling, inline interpretation text, or formatting glue. Keep each result adjacent to its essential footnote/legend and supporting graph. Do not add interpretive prose unless explicitly requested.
+```r
+knitr::opts_chunk$set(echo = knitr::is_html_output(), message = FALSE,
+                      warning = TRUE, comment = NA)
+```
+
+Folded code stays in the HTML for audit behind "Code" buttons; Word output has no code. Render each file into `results/`, for example `rmarkdown::render("110_primary_outcome.Rmd", output_dir = "results")`.
+
+## No Raw Output
+
+The rendered report shows only headings, formatted tables, figures, and short text.
+
+- Computing chunks assign results and print nothing.
+- Never print model objects, `summary()`, `str()`, `head()`, `glimpse()`, bare data frames or tibbles, `table()` output, or package start-up messages. Put every result through `flextable`, `gt`, `gtsummary`, or `knitr::kable()`, or a figure.
+- Use inline R for single values in text, for example N or a seed.
+- Warnings remain visible until reviewed; silence only a known, documented warning in the chunk that produces it.
+- The only permitted console-style output is `sessionInfo()` in the final Reproducibility record section.
 
 ## Reporting Defaults
 
-Read `clinical-reporting-guidelines.md` for full details.
-
-- Render HTML at every step and review meaning, sense, Ns, denominators, and next step.
-- Every table needs a heading; add only absolutely essential footnotes.
-- Categorical variables use hierarchical rows: variable label, then category-value subrows.
-- Exploratory continuous summaries show both mean (SD) and median (p25, p75).
-- Final reporting and parametric/non-parametric tests are agreed with the researcher.
-- Use 1 decimal for descriptive estimates, 2 for ORs and confidence bounds, and 3 for p values and standard errors. Include 95% CIs for important estimates.
-- Set and record seeds for stochastic analysis, record relevant package versions, and include `sessionInfo()` at the end of the report.
+Follow `clinical-reporting-guidelines.md` for tables, numeric formatting, CIs, footnotes and text limits, `clinical-regression-reporting.md` for model tables, and the Phase Report in `SKILL.md` at every step.
 
 ## Render the Opinionated Example
 
@@ -41,3 +54,5 @@ rmarkdown::render(
 ```
 
 Use `ngroups = 3` for three groups and `output_format = "html_document"` for review. The logistic example uses separate `glm(..., family = binomial())` fits and a prespecified joint model on the same complete-case sample, with `confint.default()` Wald bounds exponentiated alongside coefficients. It checks convergence, model N and finite estimates before printing. Researcher-approved study methods override the demonstration choices.
+
+Related: `clinical-reporting-guidelines.md`, `clinical-regression-reporting.md`, `component-project-layout.md`.

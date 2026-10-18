@@ -17,3 +17,5 @@ First define subject/cluster ID, repeated unit, time variable and spacing, outco
 Before fitting random-effects models, specify random-effects structure. Check convergence, singular fits, residual patterns, and overcomplication.
 
 Report fixed effects, random effects, clustering unit, time variable, covariance/correlation structure, number of subjects/clusters, number of observations, and missing follow-up.
+
+Related: `clinical-ophthalmology-guidelines.md`, `glaucoma-progression.md`, `myopia.md`.

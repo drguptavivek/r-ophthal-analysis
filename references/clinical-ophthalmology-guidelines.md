@@ -1,34 +1,61 @@
-# Ophthalmology Guidelines
+# Ophthalmology Definitions
 
-Load this for ophthalmology datasets.
+Load this when defining ophthalmology variables, outcomes, denominators, or visual acuity classifications.
 
-## Unit of Analysis
+## Always State
 
-Be explicit about whether each analysis is eye-wise or person-wise.
+Record each of these in `analysis_charter.md` before deriving variables:
 
-Define whether rows represent persons, eyes, visits, images, scans, lesions, or procedures. Define laterality coding and whether both eyes can contribute.
+- row unit: person, eye, visit, image, scan, lesion, or procedure; laterality coding and whether both eyes contribute
+- eye-wise versus person-wise analysis, and for two-eye data: one selected eye, right/left only, better eye, worse eye, any eye, both eyes, or both eyes with clustering adjustment
+- VA measure (PVA, UCVA, BCVA, pinhole), correction status, chart (Snellen, ETDRS, decimal, categorical), test distance, and scale used for analysis
+- handling of CF, HM, LP, NLP values
+- WHO visual impairment categories and exact thresholds
+- missing, ungradable, absent, pseudophakic/aphakic, or excluded eyes
 
-For two-eye data, state whether analysis uses one selected eye, worse eye, better eye, both eyes with clustering adjustment, or person-level summary.
+Do not label an outcome "person-level" unless its aggregation rule is stated.
 
-## Visual Acuity and Visual Impairment
+## Visual Acuity
 
-Define whether visual acuity is presenting visual acuity (PVA/PV), uncorrected VA, BCVA, or another measure. Define scale: Snellen, LogMAR, ETDRS, decimal, or categorical.
+- Analyse VA on logMAR. Convert Snellen as `logMAR = -log10(numerator / denominator)`; decimal as `-log10(decimal)`. For ETDRS letter scores use `logMAR = 1.7 - 0.02 * letters` (85 letters = 0.0), and state any letter-by-letter vs line scoring.
+- Off-chart values (CF, HM, LP, NLP) have no single standard logMAR. Common published conventions differ (for example CF 1.9-2.0 and HM 2.3-3.0; LP/NLP often excluded from means or analysed only categorically). Ask the researcher to choose one convention, cite its source in the `.Rmd`, and run a sensitivity analysis when off-chart eyes are a meaningful share.
+- Keep the raw VA field alongside the derived logMAR so every conversion is auditable.
 
-State rules for converting visual acuity and handling CF, HM, LP, and NLP.
+## WHO Visual Impairment Categories
 
-When discussing visual impairment, state whether based on better eye, worse eye, eye-wise acuity, presenting VA, or BCVA.
+Distance presenting VA in the better eye, ICD-11 / WHO World Report on Vision:
 
-Use WHO visual impairment categories when appropriate: mild VI, moderate VI, severe VI, blindness. Define exact thresholds in the `.Rmd`; do not mix eye-wise and person-wise VI definitions without clear labels and footnotes.
+| Category | Worse than | Equal to or better than |
+| --- | --- | --- |
+| No VI | | 6/12 |
+| Mild VI | 6/12 | 6/18 |
+| Moderate VI | 6/18 | 6/60 |
+| Severe VI | 6/60 | 3/60 |
+| Blindness | 3/60 | |
+
+Older and RAAB-style analyses may use other cut-offs (for example 6/18 as the lower limit of normal, or BCVA instead of PVA). Confirm the protocol's definition, encode thresholds as named constants, and never mix eye-wise and person-wise or PVA- and BCVA-based VI in one table without explicit labels.
 
 ## Person-Level Outcomes from Eye-Level Data
 
-For refractive error, cataract, DR, glaucoma presence/suspect status, retinal disease, and other eye diseases, define the aggregation rule:
+For refractive error, cataract, DR, glaucoma presence/suspect status, retinal disease, and other eye diseases, define the aggregation rule: any-eye positive, both-eye positive, better-eye based, worse-eye based, right-eye or left-eye only, or eye-wise with clustering adjustment. Document how a missing or ungradable fellow eye is handled (for example any-eye positive needs only one gradable positive eye; any-eye negative needs both eyes gradable).
 
-- Any-eye positive.
-- Both-eye positive.
-- Better-eye based.
-- Worse-eye based.
-- Right-eye or left-eye only.
-- Eye-wise only, with clustering adjustment if both eyes are analyzed.
+## Analysing Both Eyes
 
-Document missing/ungradable eye handling. Do not label an outcome "person-level" unless the any-eye/both-eye/better-eye/worse-eye rule is stated.
+When both eyes contribute, the inter-eye correlation must be modelled. Propose one of these and wait for approval:
+
+- GEE with person as cluster and exchangeable working correlation (population-averaged effects).
+- Mixed model with a person random intercept (subject-specific effects; add eye-level covariates as needed).
+- Cluster (person-level) bootstrap for CIs of eye-level summaries or diagnostic metrics.
+- One eye per person (random, right, or protocol-selected) when the clustering is not of interest.
+
+Report both persons and eyes in denominators.
+
+## Common Errors to Prevent
+
+- Treating two eyes of one person as independent in a chi-square, t-test, or logistic model.
+- Averaging Snellen fractions or decimal VA instead of logMAR.
+- Reporting an eye-level p-value or prevalence as if it were person-level.
+- Coding ungradable or not-examined eyes as disease-negative.
+- Using the recruited N as the denominator for an outcome with missing eyes.
+
+Related: `clinical-raab-surveys.md`, `who-ecim-ecsc-formulas.md`, `glaucoma-endpoints.md`, `diabetic-retinopathy.md`, `myopia.md`, `corneal-blindness.md`.

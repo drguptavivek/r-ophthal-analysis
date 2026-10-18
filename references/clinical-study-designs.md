@@ -32,3 +32,5 @@ Use survival analysis only with a genuine time-to-event outcome, follow-up time,
 Start with number at risk, events, median follow-up, Kaplan-Meier curves with risk tables, survival probabilities with 95% CIs, and log-rank tests only when appropriate.
 
 For Cox regression, report HRs with 95% CIs and p-values, check proportional hazards assumptions, influential observations, functional form, overfitting risk, and do not interpret HRs as RRs.
+
+Related: `clinical-longitudinal-repeated.md`, `clinical-diagnostic-prediction.md`, `clinical-complex-surveys.md`, `clinical-meta-analysis.md`.

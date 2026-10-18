@@ -1,12 +1,12 @@
 # Component: Native Stata Reporting
 
-Use this route only when the researcher explicitly requests Stata. R/R Markdown remains the default. Follow the same analysis charter, data audit, frozen dataset, missing-data plan and researcher phase approvals in `SKILL.md`; follow `clinical-reporting-guidelines.md` for the shared publication layout. Do not interpret results without an explicit request. Add only absolutely essential footnotes.
+Use this route only when the researcher explicitly requests Stata. R/R Markdown remains the default. Follow the same analysis charter, data audit, frozen dataset, missing-data plan and researcher phase approvals in `SKILL.md`; follow `clinical-reporting-guidelines.md` for the shared publication layout.
 
 ## One Reproducible Native Analysis
 
-Verify the installed Stata version and availability of `dtable`, `collect` and `putdocx`; `dtable` requires Stata 18 or later. Use the available Stata MCP or installed Stata executable. Do not assume a server port, platform or patient-data path. Native Stata work does not require an R installation or R preflight.
+Verify the installed Stata version and availability of `dtable`, `collect` and `putdocx`; `dtable` requires Stata 18 or later. Use the Stata MCP (`stata_run_file`, `stata_run_selection`) or the installed Stata executable; if the MCP is missing or reports the wrong edition, follow `setup-stata-mcp` in `local-config.md`. Do not assume a server port, platform or patient-data path. Native Stata work does not require an R installation or R preflight.
 
-Keep one complete `.do` per requested analysis variant, with source import, approved cleaning, analysis and report generation reproducible in order. Start a raw text log before substantive commands, record version and seed, preserve warnings and errors, and close the log only after checking required output files. Check the raw log and completion marker; an MCP response marked successful is not proof that Stata finished without an error.
+Use the staged layout in `component-project-layout.md`: `010_load.do`, `020_explore_clean.do`, `030_derive_label_freeze.do`, then one do-file per analysis section (`100_table1.do`, `110_...`), each runnable on its own with no master do-file. Analysis do-files open only the frozen `.dta` and run `datasignature confirm`. In each do-file, start a raw text log (`log using "results/<file>.log", text replace`) before substantive commands, record version and seed, preserve warnings and errors, and close the log only after checking required output files. Check the raw log and completion marker; an MCP response marked successful is not proof that Stata finished without an error.
 
 Use `dtable`'s numeric descriptive results directly. Do not run it decoratively and reconstruct all means, quartiles and category frequencies as manually formatted strings. Keep full numerical precision until display. Use `collect get` for additional model/test results, outcome denominators and explicitly approved absent categories; save collections with `collect save`.
 
@@ -73,3 +73,5 @@ The example's demonstration tests and adjustment set are not defaults for an act
 - [Stata: separate descriptive statistics using dtable and collect](https://www.stata.com/support/faqs/reporting/display-multiple-descriptive-statistics/)
 - [Stata: adding a custom statistic to a collection](https://www.stata.com/support/faqs/reporting/customized-statistic-new-column-row/)
 - [Stata: putdocx collect manual](https://www.stata.com/manuals/rptputdocxcollect.pdf)
+
+Related: `clinical-reporting-guidelines.md`, `clinical-regression-reporting.md`, `component-project-layout.md`.

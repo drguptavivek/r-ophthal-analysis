@@ -4,12 +4,13 @@ An Agent Skill for stepwise ophthalmology clinical research analysis in R/R Mark
 
 ## What it does
 
-- Sets up a portable R/R Markdown analysis project with a central `analysis.Rmd`.
+- Sets up a portable, staged R/R Markdown analysis project: numbered prep stages, a frozen analytic dataset, and one analysis file per section.
 - Audits records, variable types, duplicates, and missingness before recoding.
 - Separates raw, derived, frozen, and exported datasets while excluding the complete `data/` directory from Git.
 - Handles eye-wise and person-wise ophthalmology definitions explicitly.
 - Routes work to design-specific guidance for surveys, diagnostic accuracy, prediction, longitudinal data, survival analysis, trials, and meta-analysis.
-- Includes guarded WHO ECIM eCSC/eREC and companion-indicator guidance.
+- Includes WHO 2022, McCormick/RAAB7, PVA-based and older eCSC/eREC definitions checked against the WHO report and RAAB7 analysis code, with component checks.
+- Provides tested Stata (`svyprev`) and R (`svy_prevalence()`) helpers for survey prevalence with 95% CI by group for binary and multinomial outcomes.
 - Produces publication-oriented tables, figures, and labelled Stata/SPSS exports.
 - Supports native Stata `dtable`/`collect`/`putdocx` reporting when explicitly requested, with complete do-files and preserved raw logs.
 - Works through an RStudio/ClaudeR MCP connection when available, with direct `Rscript` as the reproducible fallback.
@@ -62,8 +63,9 @@ The project command installs under `.agents/skills/ophthal-analysis/`. See the [
 - `rmarkdown`, `knitr`, and Pandoc when rendering `.Rmd` reports. Pandoc may come from the system or an RStudio installation.
 - On Windows only, Rtools when a package containing C, C++, or Fortran code must be installed from source. Normal CRAN binary-package installation does not require it.
 - Optional: RStudio, ClaudeR, `uvx`, and `clauder-mcp` for live RStudio MCP sessions.
+- Optional for Stata: Stata 17+ and the Stata MCP IDE extension (`DeepEcon.stata-mcp`, <https://github.com/hanlulong/stata-mcp>) with `stataPath` and `stataEdition` (mp/se/be) matching the install; see `setup-stata-mcp` in `references/local-config.md`.
 
-The skill must ask before installing R packages or changing MCP configuration. If the optional MCP path is unavailable, it should continue with `Rscript` and the same central `.Rmd` workflow.
+The skill must ask before installing R packages or changing MCP configuration. If the optional MCP path is unavailable, it should continue with `Rscript` and the same staged workflow.
 
 Check readiness without installing anything:
 
@@ -119,7 +121,9 @@ Rscript /path/to/ophthal-analysis/scripts/scaffold_analysis_guidelines.R /path/t
 
 It creates:
 
-- `analysis.Rmd`, containing the analysis charter, approval gates, data audit, missing-data plan, freeze record, results sections, and `sessionInfo()`.
+- `analysis_charter.md` with the study charter and dated decision log.
+- Stage templates `010_load.Rmd`, `020_explore_clean.Rmd`, `030_derive_label_freeze.Rmd`, and `100_table1.Rmd`, each with a floating table of contents, folded code, and `sessionInfo()`. Copy `100_table1.Rmd` to `110_`, `120_`, ... for further analysis sections.
+- `write_freeze()` / `read_frozen()` helpers that record and verify the frozen dataset's checksum and N.
 - `data/raw/`, `data/derived/`, `data/frozen/`, and `data/exports/`.
 - `R/analysis_guidelines.R`, `figs/`, `results/`, and `lit-review/`.
 - A project `.gitignore` entry for `/data/`, so every patient-level data folder remains outside Git.

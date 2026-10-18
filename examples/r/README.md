@@ -1,5 +1,8 @@
 # R Examples
 
+- [Survey prevalence](svy_prevalence.R): `svy_prevalence()` for binary or multinomial prevalence with 95% logit CI and DEFF by group; see `../../references/clinical-survey-prevalence.md`.
+- [Refraction-dropout bias](dropout_bias_simulation.R): `dropout_bias()` simulates two-stage school screening and reports how far complete-case prevalence falls below the truth by dropout level; see `../../references/refractive-error-vision-layers.md`.
+- [Incidence from prevalence](incidence_from_prevalence.R): `incidence_from_prevalence()` implements Podgor and Leske (1986) with differential mortality and delta-method SEs; reproduces their Table II; see `../../references/burden-projection.md`.
 - [Publication tables](publication_tables.Rmd): unified hierarchical Table 1, two-/three-group outcome tables followed by their graph, and logistic regression with category N, outcome %, univariable and multivariable OR [95% CI].
 
 Render from the skill root to an absolute scratch directory:

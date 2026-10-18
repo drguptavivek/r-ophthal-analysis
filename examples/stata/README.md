@@ -1,5 +1,6 @@
 # Stata Collect Examples
 
+- [Survey prevalence](svyprev.do): `svyprev` program for binary or multinomial prevalence with 95% logit CI and DEFF by group, read by coefficient name; see `../../references/clinical-survey-prevalence.md`.
 - [Table 1](example_stata_table1.do): native `dtable`/`collect` for continuous and categorical blocks, observed Ns, group columns, unadjusted p and indented subrows; continuous table followed by graphs.
 - [Logistic regression](example_stata_logistic.do): native logistic estimates collected into variable/category, N, outcome %, univariable OR [95% CI] and multivariable OR [95% CI], with reference rows and multivariable model statistics.
 

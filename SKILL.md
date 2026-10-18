@@ -1,98 +1,92 @@
 ---
 name: ophthal-analysis
-description: One portable skill for stepwise ophthalmology clinical research analysis in R/R Markdown or explicitly requested native Stata. Use for RStudio/ClaudeR MCP setup, Rscript fallback, project setup, data audit, recoding, analytic dataset freeze, eye-wise/person-wise ophthalmology definitions, study-design-specific analysis, R Markdown rendering, publication tables, figures, labelled Stata/SPSS exports, and explicitly requested native Stata analysis/reporting.
+description: Stepwise, researcher-approved analysis of ophthalmology and eye-care research data in R/R Markdown (default) or native Stata when explicitly requested. Use for eye-wise vs person-wise outcomes, visual acuity/logMAR and WHO visual impairment, cataract, refractive error and myopia, diabetic retinopathy, glaucoma/IOP, corneal blindness, RAAB and cluster eye surveys, WHO ECIM eCSC/eREC indicators, diagnostic accuracy or AI grading studies, Table 1 and publication tables, regression, labelled Stata/SPSS exports, RStudio/ClaudeR MCP or Rscript setup, and Stata MCP setup (`setup-stata-mcp`). Not for general biostatistics without an eye-care context.
 ---
 
 # Ophthal Analysis
 
 ## Role
 
-Use this as the coordinating skill for ophthalmology clinical research analysis. Keep the researcher in charge: AI suggestions are proposals, not decisions.
+Coordinate ophthalmology clinical research analysis. The researcher decides; AI suggestions are proposals. Work one phase at a time and do not start the next substantive phase until the researcher confirms.
 
-Work one phase at a time. Do not move to the next substantive phase until the researcher confirms.
+R/R Markdown is the default. When the researcher explicitly requests Stata, use staged `.do` files, each with a preserved raw log and native reporting; no R translation or R installation is needed. The same source freeze, data safeguards, and approval gates apply. Present checked results without clinical or statistical interpretation unless the researcher explicitly asks.
 
-R/R Markdown remains the default. When the researcher explicitly requests Stata, use a central `.do` with a preserved raw log and native reporting; do not require an R translation or R installation. The same source freeze, data safeguards, and researcher approval gates apply. Present checked results without adding clinical or statistical interpretation unless the researcher explicitly requests it. Use hierarchical tables with indented category/summary rows by default in both R and Stata. Keep table footnotes limited to absolutely essential information.
+## Index
 
-## Components
+The references form a network. Identify every theme the task touches, then load only the files under those themes; a file appears under each theme it serves. Each reference ends with a `Related:` line for neighbouring files. Paths are relative to `references/`.
 
-This is one skill with internal components. Load only the component reference needed for the current task:
+| Theme | Load when | Files |
+| --- | --- | --- |
+| Setup and runtime | R, RStudio/ClaudeR MCP, Pandoc, Stata MCP (`setup-stata-mcp`) | `local-config.md` |
+| Project and data | Scaffolding, stages, freeze, codebook, recoding, missing data, legacy Stata | `component-project-layout.md`, `component-data-management.md`, `clinical-variable-coding.md`, `component-missing-data.md`, `legacy-stata-translation.md` |
+| Reporting | Tables, figures, rendering, regression tables | `component-rmd-reporting.md` or `component-stata-reporting.md`, `clinical-reporting-guidelines.md`, `clinical-regression-reporting.md` |
+| Study design and statistics | Choosing tests and models after design, unit and purpose are clear | `clinical-study-designs.md`, `clinical-longitudinal-repeated.md`, `clinical-diagnostic-prediction.md`, `clinical-meta-analysis.md` |
+| Vision core | VA, logMAR, WHO VI, eye vs person, two-eye analysis | `clinical-ophthalmology-guidelines.md` |
+| Surveys | RAAB and cluster surveys, weights, standardisation, prevalence by group, cause-specific burden | `clinical-complex-surveys.md`, `clinical-raab-surveys.md`, `raab-weights.md`, `clinical-survey-prevalence.md` |
+| WHO ECIM indicators | eCSC, CSC, eREC, REC, cataract surgical outcome | `who-ecim-ecsc-formulas.md`, `who-ecim-erec-formulas.md`, `clinical-raab-surveys.md`, `clinical-survey-prevalence.md` |
+| Cataract | Coverage, surgical outcome, cataract VI, surgery projections | `who-ecim-ecsc-formulas.md`, `clinical-raab-surveys.md`, `burden-projection.md` |
+| Refractive error | Case classification (myopia, hyperopia, astigmatism, which eye, exclusions), eREC/REC, spectacle coverage, near vision | `refractive-error-classification.md`, `refractive-error-vision-layers.md`, `who-ecim-erec-formulas.md`, `myopia.md`, `school-eye-health.md` |
+| Myopia | Prevalence, incidence, myopia-control trials | `refractive-error-classification.md`, `refractive-error-vision-layers.md`, `myopia.md`, `clinical-longitudinal-repeated.md` |
+| School eye health | School vision screening, referral uptake, spectacle provision and wear, school-based trials | `school-eye-health.md`, `refractive-error-classification.md`, `refractive-error-vision-layers.md`, `myopia.md`, `who-ecim-erec-formulas.md`, `clinical-diagnostic-prediction.md` |
+| Glaucoma | Case definitions, IOP trials, surgery, AI screening, progression, mind-body trials, blindness burden | `glaucoma-endpoints.md`, `glaucoma-progression.md`, `glaucoma-mindbody-trials.md`, `clinical-raab-surveys.md` |
+| Diabetic retinopathy | Grading, STDR, referable DR, DR in RAAB, screening | `diabetic-retinopathy.md`, `clinical-diagnostic-prediction.md`, `clinical-raab-surveys.md` |
+| Corneal blindness | CO burden, trachomatous opacity, keratoplasty need and outcomes | `corneal-blindness.md`, `clinical-raab-surveys.md` |
+| Burden projection | Future cases, surgeries or complications from survey rates and population projections | `burden-projection.md`, `raab-weights.md`, `clinical-survey-prevalence.md` |
+| Screening and AI | Diagnostic accuracy, prediction, AI grading | `clinical-diagnostic-prediction.md`, plus the disease file |
 
-- MCP/setup: `references/component-mcp.md`, then `references/local-config.md` if needed.
-- Data management: `references/component-data-management.md`, then `references/clinical-variable-coding.md` if recoding/exporting and `references/component-missing-data.md` when deciding how missing observations enter analysis.
-- R Markdown/reporting: `references/component-rmd-reporting.md`, then `references/clinical-reporting-guidelines.md`; see `examples/r/README.md` for the R example index and runnable Table 1, comparison and logistic regression examples.
-- Explicitly requested native Stata: `references/component-stata-reporting.md` and `references/clinical-reporting-guidelines.md`; see `examples/stata/README.md` for the Stata example index and separate runnable Table 1 and logistic regression do-files.
-- Ophthalmology definitions: `references/component-ophthalmology.md`, then `references/clinical-ophthalmology-guidelines.md` when defining eye/person outcomes.
-- WHO ECIM indicators: `references/component-who-ecim-indicators.md`, then `references/who-ecim-indicator-formulas.md` for WHO ECIM eCSC/eREC indicators and their CSC/REC companion formulas.
-- Study designs and modelling: `references/component-study-designs.md`, then the relevant design reference only.
+Runnable examples: `examples/r/README.md`, `examples/stata/README.md` (Stata only on explicit request).
 
-For portability, keep this whole folder as the repo. Use `scripts/scaffold_analysis_guidelines.R` for optional project scaffolding and `scripts/selftest.R` for a dependency-free readiness check, resolving both relative to this skill root.
+Use `scripts/scaffold_analysis_guidelines.R` for optional project scaffolding and `scripts/selftest.R` for a dependency-free readiness check.
 
 ## Runtime Preflight
 
-Before the first R execution or environment-setup action in a task, run `Rscript scripts/selftest.R`. It reports the active R version, `Rscript` and library paths, package build locations, Pandoc, and optional RStudio MCP readiness without installing anything.
+Before the first R execution or environment-setup action in a task, run `Rscript scripts/selftest.R`. It reports R version, `Rscript` and library paths, package build locations, Pandoc, and optional RStudio MCP readiness without installing anything.
 
-- When R has been upgraded, moved, or starts loading a different library, run `Rscript scripts/selftest.R --check-updates`. Review the result with the user; never update R or packages automatically. After a major/minor R change, recheck required packages and rerun ClaudeR client configuration only with approval because R library paths may change.
-- For an agent that will invoke Pandoc from Python, pass that exact interpreter to the self-test: `Rscript scripts/selftest.R --python /absolute/path/to/python`. The check uses `scripts/check_pandoc.py`, which requires only the Python standard library. Use the reported absolute Pandoc executable rather than assuming it is on the Python sandbox's `PATH`.
-- R Markdown rendering requires `rmarkdown`, `knitr`, and an executable Pandoc. The self-test also discovers Pandoc bundled with RStudio through `rmarkdown::find_pandoc()`.
-- On Windows, let the self-test compile its disposable C probe before installing any package from source. Rtools is not normally needed for CRAN binary packages, but it is needed for packages with compiled code when only source installation is available. Use `--require-build-tools` only when source compilation is required. If the probe fails, consult the current CRAN Rtools page rather than guessing a version or path; never install Rtools without approval.
+- After R is upgraded, moved, or loads a different library, run `Rscript scripts/selftest.R --check-updates` and review the result with the user. Never update R or packages automatically; rerun ClaudeR client configuration only with approval.
+- For an agent that invokes Pandoc from Python, run `Rscript scripts/selftest.R --python /absolute/path/to/python` and use the reported absolute Pandoc path.
+- R Markdown rendering needs `rmarkdown`, `knitr`, and Pandoc (system or RStudio-bundled).
+- On Windows, let the self-test compile its C probe before any source package install. Use `--require-build-tools` only when source compilation is required; if it fails, consult the current CRAN Rtools page and never install Rtools without approval.
 
 ## Core Workflow
 
-Before substantive analysis, clarify and record in the central `.Rmd` (or central `.do` and raw log for explicitly requested Stata):
+Before substantive analysis, clarify and record in `analysis_charter.md`: study design, dataset layout and row unit, unit of analysis, primary and secondary outcomes, endpoint and exposure definitions, comparison groups, and modelling purpose (inference, prediction, diagnostic accuracy, or description).
 
-- study design
-- dataset layout and row unit
-- unit of analysis
-- primary and secondary outcomes
-- endpoint definitions
-- exposure definitions
-- comparison groups
-- modelling purpose: inference, prediction, diagnostic accuracy, or description
+Each group of steps lives in its own stage file (see `references/component-project-layout.md`):
 
-Follow this sequence:
+1. `010_load`: load the source data; understand record count and variable types.
+2. `020_explore_clean`: check duplicates and missing data; agree how missing, unavailable, not-applicable, and ungradable observations are handled; apply approved cleaning.
+3. `030_derive_label_freeze`: recode, categorize, and generate derived variables after approved definitions; apply labels; freeze the analytic dataset with source checksum, final N, exclusions, and definition version.
+4. `100_table1`: simple background tables.
+5. `110_` onward, one file per section: key outcomes first, then refined tables and supporting graphs, then deeper analysis only after the basics are agreed.
 
-1. Load initial dataset.
-2. Understand record count and variable types.
-3. Check duplicates.
-4. Check missing data.
-5. Agree how missing, unavailable, not-applicable, and ungradable observations will be handled.
-6. Recode and clean variables after approved definitions.
-7. Categorize and generate derived variables.
-8. Freeze the analytic dataset with a recorded source checksum, final N, exclusions, and definition version.
-9. Build simple background tables.
-10. Estimate key outcomes.
-11. Refine tables and supporting graphs.
-12. Move to deeper analysis only after the basics are agreed.
+## Phase Report
 
-At each step, render the `.Rmd` to HTML for R, or review the raw log and requested native report for Stata. Verify technical consistency and present the following questions for researcher review; do not supply autonomous interpretation:
+End every phase by rendering that stage's `.Rmd` to HTML (or reviewing its raw log and native report for Stata), verifying technical consistency, and replying in this shape:
 
-- What do the results mean?
-- Do they make clinical and statistical sense?
-- Are Ns and denominators consistent?
-- What does this imply for the next step?
+```text
+Phase: <number and name>
+Done: <what ran; output file paths>
+N flow: <records/persons/eyes in -> out, with reasons for each drop>
+Denominators: <per key result; persons vs eyes>
+Checks: <warnings, inconsistencies, or "none">
+Decisions needed: <numbered list of researcher choices, each with a proposed default>
+Proposed next phase: <one line>
+For your review: What do the results mean? Do they make clinical and statistical sense? Are Ns and denominators consistent? What does this imply for the next step?
+```
 
-## User Workflow Translation Patterns
-
-When translating the user's older Stata projects into R, preserve the working-analysis style unless the user asks for a clean-room redesign. If the user requests native Stata instead, retain the do-file/log workflow and follow the Stata component:
-
-- Treat numbered scripts as an execution map. Convert `00`, `01`, `05.2`, `10.2b`, etc. into ordered `.Rmd` sections or explicitly named helper functions.
-- Preserve visible checkpoints. Replace repeated Stata `.dta` saves with deliberate cleaned and frozen datasets in `data/`, plus compact intermediate tables in `results/` when they are used for audit or manuscript review.
-- Keep path setup portable. Do not copy hardcoded `cap cd` fallback blocks into R; use project-root detection and relative paths, but document any source path assumption in the setup section.
-- Keep helper logic local and readable. Translate repeated Stata `program define` helpers into `R/` functions, source them from the central `.Rmd`, and keep function names close to the original analytic intent.
-- Preserve survey design decisions. For RAAB-like work, explicitly map Stata `svyset`, FPC, cluster, district, age-sex standardization, DEFF, and weight variables into `survey` design objects before estimating results.
-- Preserve table/figure auditability. Replace `log using`, `htput`, `htsummary`, `export excel`, and `graph export` with rendered `.Rmd` tables, saved workbook/table outputs, and figures in `figs/`, keeping denominators and footnotes adjacent to each result.
-- Respect versioned trial/final variants. When multiple old scripts exist, identify the likely source-of-truth script with the user before consolidating, especially files named `NEW`, `final`, `trial`, `conflicted copy`, reviewer comments, or dated variants.
-- Keep external Stata package assumptions visible when translating legacy code, for example `esttab`, `estout`, `metan`, or custom project helpers.
+Then stop and wait. Record each approved decision with its date in the decision log in `analysis_charter.md`.
 
 ## Non-Negotiables
 
-- Keep commands, decisions, and results in one centralized `.Rmd` by default; explicitly requested Stata uses a central `.do` and preserved raw log. Provide a complete standalone do-file for each requested analysis variant.
-- Use headings and subheadings in the rendered report.
-- Keep immutable source data in `data/raw/`, derived data in `data/derived/`, frozen analytic data in `data/frozen/`, labelled data exports in `data/exports/`, helper R code in `R/`, figures in `figs/`, outputs in `results/`, and literature in `lit-review/`.
-- Exclude the complete `data/` directory from Git. Keep patient-level data local, do not upload or share it without explicit approval, and do not place row-level identifiers in reports or figures.
+- Use the staged layout: numbered prep stages, then one analysis file per section, each runnable on its own, with headings and subheadings. No master file.
+- Keep immutable source data in `data/raw/`, derived data in `data/derived/`, frozen analytic data in `data/frozen/`, labelled exports in `data/exports/`, helpers in `R/`, figures in `figs/`, outputs in `results/`, and literature in `lit-review/`.
+- Exclude the complete `data/` directory from Git. Keep patient-level data local, never upload or share it without explicit approval, and never put row-level identifiers in reports or figures.
+- Never assume what a code means. Different surveys, survey versions, and exports use different codes for the same item (VA categories, lens status, cause, examination status). Build a codebook from this dataset's own value labels and protocol or questionnaire, confirm it with the researcher, then write every condition against labels, not integers. Codes in this skill's references are examples only.
 - Do not define endpoints, exposures, or final analytic categories without researcher approval.
 - Do not produce final Table 1, outcome tables, or models from raw or intermediate data.
-- In exploratory analysis of continuous variables, compute both mean (SD) and median (p25, p75). Decide final reporting and parametric/non-parametric tests with the researcher.
+- Use common, widely reported statistical methods and well-established packages: for example t-test/ANOVA, Wilcoxon/Kruskal-Wallis, chi-square/Fisher, linear/logistic/Poisson regression, Kaplan-Meier/Cox, GEE/mixed models, `survey`, `gtsummary`, `pROC`, `meta`/`metafor`, or native Stata commands. Do not propose obscure or niche tests, packages, or bespoke helpers when a standard method answers the question; if the design genuinely needs a less common method, say why and cite it before asking for approval.
+- In exploratory analysis of continuous variables, compute both mean (SD) and median (p25, p75); agree final reporting and parametric/non-parametric tests with the researcher.
 - Before regression, survival, ML/prediction, diagnostic-threshold optimization, survey-weighted analysis, meta-analysis, or complex repeated-measures models, state the proposed method and wait for approval.
-- Record the seed and relevant software versions. R includes `sessionInfo()`; Stata records its version and command/package availability in the raw log.
-- If RStudio MCP is unavailable, use direct `Rscript` while preserving the same `.Rmd`, HTML rendering, and phase gates.
+- Use hierarchical tables with indented category/summary rows and only essential footnotes (details in `clinical-reporting-guidelines.md`).
+- Record the seed and software versions: `sessionInfo()` in R; version and command/package availability in the Stata raw log.
+- If RStudio MCP is unavailable, use direct `Rscript` with the same stage files, HTML rendering, and phase gates.

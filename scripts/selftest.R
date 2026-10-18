@@ -44,7 +44,11 @@ run_scaffold_smoke_test <- function() {
   }
 
   expected <- c(
-    "analysis.Rmd",
+    "analysis_charter.md",
+    "010_load.Rmd",
+    "020_explore_clean.Rmd",
+    "030_derive_label_freeze.Rmd",
+    "100_table1.Rmd",
     "R/analysis_guidelines.R",
     "data/raw",
     "data/derived",
@@ -264,6 +268,10 @@ if (!file.exists(skill_file)) {
     gregexpr("`((references|scripts)/[^`]+)`", skill_text, perl = TRUE)
   )[[1]]
   referenced_paths <- if (identical(matches, "")) character() else gsub("`", "", matches, fixed = TRUE)
+  # Index entries name reference files without the folder prefix
+  bare <- regmatches(skill_text, gregexpr("`([a-z0-9-]+\\.md)`", skill_text, perl = TRUE))[[1]]
+  bare <- setdiff(gsub("`", "", bare, fixed = TRUE), c("SKILL.md", "README.md", "CHANGELOG.md", "analysis_charter.md"))
+  referenced_paths <- unique(c(referenced_paths, file.path("references", bare)))
   missing_references <- referenced_paths[!file.exists(file.path(repo_root, referenced_paths))]
   if (length(missing_references) > 0L) {
     add_check(

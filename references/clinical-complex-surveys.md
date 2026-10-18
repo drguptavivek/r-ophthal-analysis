@@ -1,6 +1,6 @@
 # Cluster Surveys and Complex Samples
 
-Load this for cluster surveys or complex sample designs.
+Load this for cluster surveys or complex sample designs. For RAAB-specific codes, design and weights use `clinical-raab-surveys.md`; for prevalence tables by group use `clinical-survey-prevalence.md`.
 
 Ask whether data contain cluster/PSU ID, strata ID, sampling weights or sampling probabilities, population totals, FPC, survey stage information, and variables for direct standardization.
 
@@ -23,3 +23,5 @@ Confirm variables, external population margins/totals and source. Check every an
 Report design effect for key estimates when possible. Estimate/report ICC for clustered outcomes when relevant and interpretable. Use DEFF and ICC to interpret precision loss due to clustering.
 
 Do not ignore clustering or weights unless the researcher explicitly decides an unweighted/descriptive analysis is appropriate.
+
+Related: `clinical-raab-surveys.md`, `clinical-survey-prevalence.md`.

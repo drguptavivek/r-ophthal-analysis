@@ -3,7 +3,7 @@
 script_arg <- grep("^--file=", commandArgs(trailingOnly = FALSE), value = TRUE)
 script_path <- sub("^--file=", "", script_arg[[1]])
 repo_root <- normalizePath(file.path(dirname(script_path), ".."), mustWork = TRUE)
-test_files <- file.path(repo_root, "tests", c("test_scaffold.R", "test_selftest.R"))
+test_files <- file.path(repo_root, "tests", c("test_scaffold.R", "test_selftest.R", "test_svy_prevalence.R", "test_dropout_simulation.R", "test_incidence_from_prevalence.R", "test_district_projection.R"))
 
 for (test_file in test_files) {
   cat("Running", basename(test_file), "\n")
